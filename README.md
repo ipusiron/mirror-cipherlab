@@ -1,11 +1,38 @@
 <!--
 ---
-title: Mirror CipherLab
-category: classical-cryptography
+id: day084
+slug: mirror-cipherlab
+
+title: "Mirror CipherLab"
+
+subtitle_ja: "ミラー系暗号化・難読化ツール"
+subtitle_en: "Mirror Cipher Visualization Tool"
+
+description_ja: "文字順の反転（逆転値暗号）と字形の鏡像レンダリング（CSS変形）を同時に体験できる教育用ツール。古典暗号の基礎と人間認知の錯覚を学べます。"
+description_en: "Learn and visualize mirror ciphers through text reversal (transposition cipher) and mirrored glyph rendering (CSS transform). An educational tool for classical cryptography concepts."
+
+category_ja:
+  - 古典暗号
+  - 転置式暗号
+category_en:
+  - Classical Cryptography
+  - Transposition Cipher
+
 difficulty: 1
-description: Learn and visualize “mirror ciphers” (text reversal & mirrored rendering) with instant, client-side demos.
-tags: [mirror, cipher, reversal, visualization, education, javascript]
-demo: https://ipusiron.github.io/mirror-cipherlab/
+
+tags:
+  - mirror-cipher
+  - reversal
+  - transposition
+  - visualization
+  - obfuscation
+  - unicode
+  - client-side
+
+repo_url: "https://github.com/ipusiron/mirror-cipherlab"
+demo_url: "https://ipusiron.github.io/mirror-cipherlab/"
+
+hub: true
 ---
 -->
 

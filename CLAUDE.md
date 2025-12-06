@@ -4,115 +4,63 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Mirror CipherLab** is an educational web application that demonstrates mirror ciphers through text reversal and visual mirroring. It's a client-side-only tool (no backend) built with vanilla JavaScript, HTML, and CSS.
+**Mirror CipherLab** is an educational web application demonstrating mirror ciphers through text reversal and visual mirroring. Client-side only (no backend), built with vanilla JavaScript, HTML, and CSS.
 
-This is part of the "100 Security Tools with Generative AI" project - an educational tool demonstrating classical cryptography concepts, specifically text reversal (transposition cipher) and mirror rendering.
+Part of the "100 Security Tools with Generative AI" project.
 
 **Live Demo:** https://ipusiron.github.io/mirror-cipherlab/
 
-## Core Functionality
-
-The application provides two independent transformations:
-
-1. **Text Reversal (Character Order)**
-   - Full Reverse: Reverses entire string character-by-character
-   - Word-wise Reverse: Reverses characters within each word, preserving word order
-   - None: No reversal
-
-2. **Glyph Mirror (Visual Rendering)**
-   - Horizontal Mirror: CSS `scaleX(-1)` transformation
-   - Vertical Mirror: CSS `scaleY(-1)` transformation
-   - None: No visual transformation
-
-**Important:** These are separate operations. Reversal changes the actual text data; mirroring only affects visual display via CSS.
-
-## Architecture
-
-### Files Structure
-
-- `index.html` - Single-page application structure
-- `script.js` - All application logic (reversal algorithms, UI updates, URL sharing)
-- `style.css` - Dark theme styling with CSS custom properties
-
-### Key Technical Details
-
-**Character Handling:**
-- Uses spread operator `[...str]` to properly handle Unicode code points (emojis, surrogate pairs)
-- Whitespace-preserving word-wise reversal using `split(/(\s+)/)`
-
-**State Management:**
-- No framework - direct DOM manipulation
-- URL hash-based state sharing (Base64url-encoded JSON)
-- Real-time updates on input/change events
-
-**Core Functions (script.js):**
-- `reverseFull(str)` - Full string reversal supporting Unicode
-- `reverseWordWise(str)` - Word-by-word reversal preserving whitespace
-- `applyReversal(input, mode)` - Main reversal dispatcher
-- `setMirrorClass(target, mode)` - Applies CSS mirror transformations
-- `shareURL()` - Encodes current state into shareable URL
-- `loadFromHash()` - Restores state from URL hash on page load
-
 ## Development Commands
 
-### Local Development
 ```bash
-# Serve locally (any static server)
+# Local development (any of these work)
 python -m http.server 8000
-# or
 npx serve .
-# or simply open index.html in a browser (file:// protocol works)
-```
+# Or open index.html directly in browser (file:// protocol works)
 
-### Testing
-No automated tests. Manual testing checklist:
-- Test with emoji, RTL text (Arabic/Hebrew), combining characters
-- Verify clipboard operations (copy input/output)
-- Test share URL generation and restoration
-- Check responsive layout (desktop/mobile)
-- Test all reversal modes × mirror modes combinations
-
-### Deployment
-Static files only - deploy to any static host:
-```bash
-# GitHub Pages (already configured with .nojekyll)
-git add .
-git commit -m "Update"
+# Deploy to GitHub Pages
 git push origin main
 ```
 
-## Educational Context
+No build process. No automated tests - manual testing required for emoji, RTL text, clipboard operations, and responsive layout.
 
-**Security Note:** This tool demonstrates that mirror ciphers provide NO cryptographic security. They are trivially reversible and serve only as educational examples of:
-- Simple transposition ciphers
-- Human cognitive biases (visual obfuscation ≠ security)
-- Browser rendering edge cases (RTL, combining characters)
+## Architecture
 
-**Use Cases:**
-- Teaching classical cryptography concepts
-- Demonstrating cognitive psychology (reading difficulty)
-- Exploring Unicode/CSS rendering edge cases
+Single-page app with three files:
+- `index.html` - UI structure with CSP headers and ARIA attributes
+- `script.js` - All logic (reversal algorithms, URL sharing, theme)
+- `style.css` - Dark/light themes via CSS custom properties
 
-## Coding Conventions
+**Two independent transformations:**
+1. **Reversal** (changes actual text): `full` | `word` | `none`
+2. **Mirror** (CSS visual only): `h` (scaleX -1) | `v` (scaleY -1) | `none`
 
-- Vanilla JS (ES6+) - no frameworks
-- CSS custom properties for theming
-- Minimalist, functional style
-- No build process required
-- All processing happens client-side (privacy by design)
+**Key functions in script.js:**
+- `reverseFull(str)` / `reverseWordWise(str)` - Unicode-safe using `[...str]` spread
+- `applyReversal(input, mode)` - Main dispatcher
+- `setMirrorClass(target, mode)` - CSS class toggling
+- `shareURL()` / `loadFromHash()` - Base64url state in URL hash
 
-## Common Modifications
+**State:** Real-time DOM updates on input/change events. URL hash stores `{t, r, m, f}` (text, reversal, mirror, font).
 
-**Adding New Reversal Modes:**
-1. Add option to `#reversal` select in index.html
-2. Implement algorithm function in script.js
-3. Add case to `applyReversal()` switch statement
+## Adding Features
 
-**Adding New Mirror Types:**
-1. Add option to `#mirror` select in index.html
-2. Define CSS class in style.css (e.g., `.mirror-rotate { transform: rotate(180deg); }`)
-3. Update `setMirrorClass()` function
+**New reversal mode:**
+1. Add `<option>` to `#reversal` select in index.html
+2. Implement function in script.js
+3. Add case to `applyReversal()` switch
 
-**Styling Changes:**
-- Edit CSS custom properties in `:root` for theme adjustments
-- Main colors: `--bg`, `--panel`, `--text`, `--accent`, `--accent-2`
+**New mirror type:**
+1. Add `<option>` to `#mirror` select in index.html
+2. Add CSS class in style.css (e.g., `.mirror-rotate { transform: rotate(180deg); }`)
+3. Update `setMirrorClass()` in script.js
+4. Add to `validMirrors` array in `loadFromHash()` for URL sharing
+
+**Theme colors:** Edit CSS custom properties in `:root` and `:root[data-theme="light"]`
+
+## Security Considerations
+
+- CSP configured in `<meta>` tag: `default-src 'none'; script-src 'self'; style-src 'self'`
+- URL hash input validated with whitelist (`validReversals`, `validMirrors`, `validFonts`)
+- Text input limited to 50,000 characters
+- No external requests - all processing client-side
