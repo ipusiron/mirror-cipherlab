@@ -4,63 +4,69 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Mirror CipherLab** is an educational web application demonstrating mirror ciphers through text reversal and visual mirroring. Client-side only (no backend), built with vanilla JavaScript, HTML, and CSS.
+**Mirror CipherLab** is an educational web application about mirror ciphers: it reorders text (Step 1, changes the data) and mirrors the glyphs with CSS (Step 2, display only), then explains what each combination looks like in the real world and whether it can be read in a mirror. Client-side only (no backend, no external requests), vanilla JavaScript, HTML and CSS.
 
-Part of the "100 Security Tools with Generative AI" project.
+Part of the "100 Security Tools with Generative AI" project (Day084).
 
 **Live Demo:** https://ipusiron.github.io/mirror-cipherlab/
 
 ## Development Commands
 
 ```bash
-# Local development (any of these work)
-python -m http.server 8000
-npx serve .
-# Or open index.html directly in browser (file:// protocol works)
+# Tests (Node.js 22+, no dependencies)
+npm test
 
-# Deploy to GitHub Pages
-git push origin main
+# Local development (either works; file:// also works)
+python -m http.server 8000
+
+# Deploy: GitHub Pages builds main (legacy build, repository root)
 ```
 
-No build process. No automated tests - manual testing required for emoji, RTL text, clipboard operations, and responsive layout.
+GitHub Actions (`.github/workflows/test.yml`) runs `npm test` on push and pull request.
 
 ## Architecture
 
-Single-page app with three files:
-- `index.html` - UI structure with CSP headers and ARIA attributes
-- `script.js` - All logic (reversal algorithms, URL sharing, theme)
-- `style.css` - Dark/light themes via CSS custom properties
+Classic scripts (no modules, so `file://` works), loaded in this order by `index.html`:
 
-**Two independent transformations:**
-1. **Reversal** (changes actual text): `full` | `word` | `none`
-2. **Mirror** (CSS visual only): `h` (scaleX -1) | `v` (scaleY -1) | `none`
+- `js/messages.js` - `MirrorMessages`: UI strings by key (`ja`, `en`), `t(lang, key, vars)` fills `{name}`
+- `js/examples.js` - `MirrorExamples`: six examples (text + settings)
+- `js/mirror-core.js` - `MirrorCore`: pure logic, no DOM (tests load it with `vm.runInThisContext`)
+- `script.js` - UI only (events, rendering, theme, share URL)
 
-**Key functions in script.js:**
-- `reverseFull(str)` / `reverseWordWise(str)` - Unicode-safe using `[...str]` spread
-- `applyReversal(input, mode)` - Main dispatcher
-- `setMirrorClass(target, mode)` - CSS class toggling
-- `shareURL()` / `loadFromHash()` - Base64url state in URL hash
+**Step 1 modes** (`MirrorCore.MODES`): `none`, `all`, `eachWord`, `wordOrder`, `eachLine`, `lineOrder`, `eachSentence`, `blocks`, `blocksThenOrder`.
 
-**State:** Real-time DOM updates on input/change events. URL hash stores `{t, r, m, f}` (text, reversal, mirror, font).
+- All reordering is by grapheme cluster (`Intl.Segmenter`, granularity `grapheme`); falls back to code points if missing.
+- `eachWord` / `wordOrder` use `Intl.Segmenter` word granularity with a fixed locale (`ja`).
+- `wordOrder` reverses words and punctuation as units, attaches punctuation to the previous word, swaps paired brackets/quotes, and copies the source spacing for pairs not decided by punctuation rules (so it is an involution).
+- `eachSentence` keeps sentence-end marks (`SENTENCE_END`) and the whitespace touching them in place and reverses the text between them.
+- `blocksThenOrder` always equals `all` (proved by the tests for block sizes 2-20).
+- `fixCase`: lowercases sentence-initial capitals before, capitalizes sentence starts after (sentence starts are detected by `SENTENCE_END`, not by UAX #29, because UAX #29 does not break before a lowercase word).
+- Every mode is an involution (applying it twice restores the input), except `eachWord` on Japanese (dictionary segmentation of reversed kanji differs).
+
+**Step 2 mirrors** (`MirrorCore.MIRRORS`): `none`, `h` (`scaleX(-1)`), `v` (`scaleY(-1)`), as CSS classes `.mirror-*`. Copy and download always use the Step 1 string.
+
+**Combination keys** (`describeCombination(mode, mirror)`): `plain`, `mirrorWriting`, `waterReflection`, `rightToLeft`, `glyphsOnly`, `reversedAndFlipped`, `dataOnly`, `dataAndMirror`. `readableInMirror` is true only for `none` + `h`/`v`.
+
+**Share URL**: `#` + base64url(JSON `{t, r, m, f, n?, c?}`) built from `location.href` (not `location.origin`, which is `"null"` on Firefox `file://`). `decodeShare` validates format, length (text up to 50,000 UTF-16 units, hash up to 300,000), whitelists values and maps legacy `r` values (`full` -> `all`, `word` -> `eachWord`). Loaded on start and on `hashchange`; errors are shown in `#shareStatus`.
 
 ## Adding Features
 
-**New reversal mode:**
-1. Add `<option>` to `#reversal` select in index.html
-2. Implement function in script.js
-3. Add case to `applyReversal()` switch
+**New Step 1 mode:**
+1. Add the function and the case in `MirrorCore.transform`, and add the name to `MODES` (order = select order)
+2. Add `<option>` to `#reversal` in `index.html`
+3. Add `mode.<name>` and `hint.<name>` to both languages in `js/messages.js`
+4. Add a known-answer row to the Step 1 table in `README.md` / `README.en.md` (tests check the table)
 
-**New mirror type:**
-1. Add `<option>` to `#mirror` select in index.html
-2. Add CSS class in style.css (e.g., `.mirror-rotate { transform: rotate(180deg); }`)
-3. Update `setMirrorClass()` in script.js
-4. Add to `validMirrors` array in `loadFromHash()` for URL sharing
+**New mirror:** add to `MIRRORS`, the `<option>`, a `.mirror-*` class in `style.css`, `mirror.<name>` strings, and decide its combination keys.
 
-**Theme colors:** Edit CSS custom properties in `:root` and `:root[data-theme="light"]`
+**UI strings:** never hard-code text in HTML or JS; add keys to both `ja` and `en` in `js/messages.js` and reference them with `data-i18n`, `data-i18n-placeholder` or `data-i18n-label`.
+
+**Colors:** only as CSS variables in `:root` (dark, default) and `:root[data-theme="light"]`; `test/contrast.test.js` checks text pairs (4.5:1) and the focus ring (3:1).
 
 ## Security Considerations
 
-- CSP configured in `<meta>` tag: `default-src 'none'; script-src 'self'; style-src 'self'`
-- URL hash input validated with whitelist (`validReversals`, `validMirrors`, `validFonts`)
-- Text input limited to 50,000 characters
-- No external requests - all processing client-side
+- CSP meta: `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'` (no inline scripts, styles or handlers)
+- Output is written with `textContent` only
+- Share URL input is validated by `MirrorCore.decodeShare` (format, length, whitelists)
+- `localStorage` access is wrapped (`withStorage`), so blocked storage does not stop the app
+- No external requests; everything runs in the browser
