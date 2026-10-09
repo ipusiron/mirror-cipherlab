@@ -358,6 +358,12 @@ In short, its value as a cipher is **limited to education and play**.
 
 ## 🎯 Use cases
 
+### Ways of using this tool in particular
+
+- Confirming the involution (applying it twice returns to the start) (information and cryptography classes): reversing the whole text is an involution, so applying the same operation twice returns to the start. Reversing `Hello, World!` twice returns `Hello, World!`. A palindrome is unchanged even once, and `たけやぶやけた` stays `たけやぶやけた` when reversed. You can confirm by computation that a keyless method can be undone by anyone.
+- Confirming that "one character" differs between graphemes and code points (character-encoding classes): `a👨‍👩‍👧b` has a visible count (graphemes) of 3, a code-point count of 7 and a UTF-16 length of 10. Reversing by grapheme gives `b👨‍👩‍👧a`, keeping the family emoji (a ZWJ-joined sequence) intact. Reversing by code point breaks the sequence, so you can confirm that the result changes with the unit you count "one character" in.
+- Confirming that boustrophedon reverses only the even lines (typesetting and history-of-writing classes): turning the three lines `abc` / `def` / `ghi` into boustrophedon leaves the first line as is and reverses only the second, giving `abc` / `fed` / `ghi`. The index of the reversed line is (zero-based) 1, that is, only the even-numbered lines. You can confirm by computation the ancient way of writing that alternates direction line by line.
+
 ### Learning and teaching
 
 - Information and security classes: confirm that a keyless method can be undone by anyone, by applying the same operation twice. A good introduction to the difference between encryption and obfuscation.

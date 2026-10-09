@@ -195,3 +195,22 @@ test('README の見出しと番号つきの箇条書きの形', () => {
     assert.ok(!/^\d+\.\S/.test(line), `番号の後に空白がない: ${line}`);
   }
 });
+
+test('ユースケースの「このツールならではの使い方」を MirrorCore で再計算（日英）', () => {
+  const en = read('README.en.md');
+  // 1. 対合（2回で戻る）と回文
+  assert.equal(C.reverseAll(C.reverseAll('Hello, World!')), 'Hello, World!');
+  assert.equal(C.reverseAll('たけやぶやけた'), 'たけやぶやけた');
+  // 2. 書記素とコードポイントの食い違い
+  const emoji = 'a\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}b';
+  assert.deepEqual(C.counts(emoji), { graphemes: 3, codePoints: 7, utf16: 10 });
+  assert.equal(C.reverseAll(emoji), 'b\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}a');
+  // 3. 牛耕式は偶数行だけ逆順
+  assert.equal(C.boustrophedon('abc\ndef\nghi'), 'abc\nfed\nghi');
+  assert.deepEqual(C.reversedLines('abc\ndef\nghi'), [1]);
+  for (const md of [README, en]) {
+    assert.ok(md.includes('このツールならではの使い方') || md.includes('Ways of using this tool in particular'));
+    assert.ok(md.includes('Hello, World!'));
+    assert.ok(md.includes('たけやぶやけた'));
+  }
+});
