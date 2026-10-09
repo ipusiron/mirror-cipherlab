@@ -354,45 +354,47 @@ npm test
 
 ```
 mirror-cipherlab/
-├── .github/                 # GitHub settings
-│   └── workflows/           # GitHub Actions workflows
-│       └── test.yml         # Runs npm test on push and pull request
-├── assets/                  # Images for the README
-│   ├── en/                  # Screenshots of the English UI
-│   │   ├── screenshot.png   # Ambulance example (English)
-│   │   ├── screenshot2.png  # Carroll's letter (English)
-│   │   ├── screenshot3.png  # Reversing emoji and combining marks (English)
-│   │   └── screenshot4.png  # Ambulance example (English, dark mode)
-│   ├── screenshot.png       # Ambulance example (mirror writing)
-│   ├── screenshot2.png      # Reading Carroll's letter with word-order reversal
-│   ├── screenshot3.png      # Reversing emoji and combining marks as whole characters
-│   └── screenshot4.png      # Ambulance example (dark mode)
-├── js/                      # Scripts loaded by the page
-│   ├── examples.js          # Six examples (text and settings)
-│   ├── messages.js          # UI strings (Japanese and English)
-│   └── mirror-core.js       # Reordering and share-URL encoding (no DOM)
-├── test/                    # Automated tests (node --test)
-│   ├── contrast.test.js     # Contrast ratios of the light and dark themes
-│   ├── examples.test.js     # Known answers of the examples
-│   ├── format.test.js       # Line length, line endings and invisible characters
-│   ├── html.test.js         # CSP, elements and labels in index.html
-│   ├── i18n.test.js         # Japanese/English dictionaries and READMEs
-│   ├── load.js              # Helper that loads js/*.js into the tests
-│   ├── messages.test.js     # Missing or unused dictionary keys
-│   ├── mirror-core.test.js  # Reordering modes, graphemes and round trips
-│   ├── readme.test.js       # Examples, tables, YAML and tree in the READMEs
-│   ├── script.test.js       # Static checks of the UI script
-│   └── share.test.js        # Share-URL encoding and validation
-├── .gitignore               # Git ignore rules
-├── .nojekyll                # Disables Jekyll on GitHub Pages
-├── CLAUDE.md                # Development guide for Claude Code
-├── index.html               # Page structure and CSP
-├── LICENSE                  # MIT License
-├── package.json             # npm test definition (no dependencies)
-├── README.en.md             # English README
-├── README.md                # This document (Japanese)
-├── script.js                # UI logic (input, display, share URL, theme, language)
-└── style.css                # Light/dark themes and layout
+├── .github/                      # GitHub settings
+│   └── workflows/                # GitHub Actions workflows
+│       └── test.yml              # Runs npm test on push and pull request
+├── assets/                       # Images for the README
+│   ├── en/                       # Screenshots of the English UI
+│   │   ├── screenshot.png        # Ambulance example (English)
+│   │   ├── screenshot2.png       # Carroll's letter (English)
+│   │   ├── screenshot3.png       # Reversing emoji and combining marks (English)
+│   │   └── screenshot4.png       # Ambulance example (English, dark mode)
+│   ├── screenshot.png            # Ambulance example (mirror writing)
+│   ├── screenshot2.png           # Reading Carroll's letter with word-order reversal
+│   ├── screenshot3.png           # Reversing emoji and combining marks as whole characters
+│   └── screenshot4.png           # Ambulance example (dark mode)
+├── js/                           # Scripts loaded by the page
+│   ├── examples.js               # Six examples (text and settings)
+│   ├── messages.js               # UI strings (Japanese and English)
+│   ├── mirror-core.js            # Reordering and share-URL encoding (no DOM)
+│   └── reversal-compare.js       # Comparison of the three reversals and the RLO example (no DOM)
+├── test/                         # Automated tests (node --test)
+│   ├── contrast.test.js          # Contrast ratios of the light and dark themes
+│   ├── examples.test.js          # Known answers of the examples
+│   ├── format.test.js            # Line length, line endings and invisible characters
+│   ├── html.test.js              # CSP, elements and labels in index.html
+│   ├── i18n.test.js              # Japanese/English dictionaries and READMEs
+│   ├── load.js                   # Helper that loads js/*.js into the tests
+│   ├── messages.test.js          # Missing or unused dictionary keys
+│   ├── mirror-core.test.js       # Reordering modes, graphemes and round trips
+│   ├── readme.test.js            # Examples, tables, YAML and tree in the READMEs
+│   ├── reversal-compare.test.js  # Three reversals, RLO and the link to Day023
+│   ├── script.test.js            # Static checks of the UI script
+│   └── share.test.js             # Share-URL encoding and validation
+├── .gitignore                    # Git ignore rules
+├── .nojekyll                     # Disables Jekyll on GitHub Pages
+├── CLAUDE.md                     # Development guide for Claude Code
+├── index.html                    # Page structure and CSP
+├── LICENSE                       # MIT License
+├── package.json                  # npm test definition (no dependencies)
+├── README.en.md                  # English README
+├── README.md                     # This document (Japanese)
+├── script.js                     # UI logic (input, display, share URL, theme, language)
+└── style.css                     # Light/dark themes and layout
 ```
 
 ---

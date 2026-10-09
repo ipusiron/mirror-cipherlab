@@ -392,45 +392,47 @@ npm test
 
 ```
 mirror-cipherlab/
-├── .github/                 # GitHubの設定
-│   └── workflows/           # GitHub Actionsのワークフロー
-│       └── test.yml         # pushとpull requestでnpm testを実行する
-├── assets/                  # READMEの画像
-│   ├── en/                  # 英語の画面のスクリーンショット
-│   │   ├── screenshot.png   # 救急車の例（英語）
-│   │   ├── screenshot2.png  # キャロルの手紙（英語）
-│   │   ├── screenshot3.png  # 絵文字と結合文字の逆順（英語）
-│   │   └── screenshot4.png  # 救急車の例（英語・ダークモード）
-│   ├── screenshot.png       # 救急車の例（鏡文字の組み合わせ）
-│   ├── screenshot2.png      # キャロルの手紙を語の並びの逆順で読む
-│   ├── screenshot3.png      # 絵文字と結合文字を見た目の1文字のまま逆順に
-│   └── screenshot4.png      # 救急車の例（ダークモード）
-├── js/                      # 画面から読み込むスクリプト
-│   ├── examples.js          # 例文6つ（文と設定の組）
-│   ├── messages.js          # 画面の文言の辞書（日本語・英語）
-│   └── mirror-core.js       # 並べ替えと共有URLの符号化（DOMに触れない）
-├── test/                    # 自動テスト（node --test）
-│   ├── contrast.test.js     # ライト・ダークの配色のコントラスト比
-│   ├── examples.test.js     # 例文の既知解答
-│   ├── format.test.js       # 行の長さ・改行コード・見えない文字
-│   ├── html.test.js         # index.htmlのCSP・要素・ラベル
-│   ├── i18n.test.js         # 日英の辞書とREADMEの対応
-│   ├── load.js              # js/*.jsをテストに読み込む補助
-│   ├── messages.test.js     # 辞書のキーの過不足
-│   ├── mirror-core.test.js  # 並べ替えの方式・書記素・往復
-│   ├── readme.test.js       # READMEの例・表・YAML・ツリー
-│   ├── script.test.js       # 画面の処理の書き方（静的な検査）
-│   └── share.test.js        # 共有URLの符号化と検証
-├── .gitignore               # Gitの除外設定
-├── .nojekyll                # GitHub PagesでJekyllを使わない
-├── CLAUDE.md                # Claude Code向けの開発ガイド
-├── index.html               # 画面の構造とCSP
-├── LICENSE                  # MITライセンス
-├── package.json             # npm testの定義（依存なし）
-├── README.en.md             # 英語版のREADME
-├── README.md                # 本ドキュメント
-├── script.js                # 画面の処理（入力・表示・共有URL・テーマ・言語）
-└── style.css                # ライト・ダークの配色とレイアウト
+├── .github/                      # GitHubの設定
+│   └── workflows/                # GitHub Actionsのワークフロー
+│       └── test.yml              # pushとpull requestでnpm testを実行する
+├── assets/                       # READMEの画像
+│   ├── en/                       # 英語の画面のスクリーンショット
+│   │   ├── screenshot.png        # 救急車の例（英語）
+│   │   ├── screenshot2.png       # キャロルの手紙（英語）
+│   │   ├── screenshot3.png       # 絵文字と結合文字の逆順（英語）
+│   │   └── screenshot4.png       # 救急車の例（英語・ダークモード）
+│   ├── screenshot.png            # 救急車の例（鏡文字の組み合わせ）
+│   ├── screenshot2.png           # キャロルの手紙を語の並びの逆順で読む
+│   ├── screenshot3.png           # 絵文字と結合文字を見た目の1文字のまま逆順に
+│   └── screenshot4.png           # 救急車の例（ダークモード）
+├── js/                           # 画面から読み込むスクリプト
+│   ├── examples.js               # 例文6つ（文と設定の組）
+│   ├── messages.js               # 画面の文言の辞書（日本語・英語）
+│   ├── mirror-core.js            # 並べ替えと共有URLの符号化（DOMに触れない）
+│   └── reversal-compare.js       # 3つの「逆」の比較とRLOの例（DOMに触れない）
+├── test/                         # 自動テスト（node --test）
+│   ├── contrast.test.js          # ライト・ダークの配色のコントラスト比
+│   ├── examples.test.js          # 例文の既知解答
+│   ├── format.test.js            # 行の長さ・改行コード・見えない文字
+│   ├── html.test.js              # index.htmlのCSP・要素・ラベル
+│   ├── i18n.test.js              # 日英の辞書とREADMEの対応
+│   ├── load.js                   # js/*.jsをテストに読み込む補助
+│   ├── messages.test.js          # 辞書のキーの過不足
+│   ├── mirror-core.test.js       # 並べ替えの方式・書記素・往復
+│   ├── readme.test.js            # READMEの例・表・YAML・ツリー
+│   ├── reversal-compare.test.js  # 3つの「逆」の比較・RLO・Day023へのリンク
+│   ├── script.test.js            # 画面の処理の書き方（静的な検査）
+│   └── share.test.js             # 共有URLの符号化と検証
+├── .gitignore                    # Gitの除外設定
+├── .nojekyll                     # GitHub PagesでJekyllを使わない
+├── CLAUDE.md                     # Claude Code向けの開発ガイド
+├── index.html                    # 画面の構造とCSP
+├── LICENSE                       # MITライセンス
+├── package.json                  # npm testの定義（依存なし）
+├── README.en.md                  # 英語版のREADME
+├── README.md                     # 本ドキュメント
+├── script.js                     # 画面の処理（入力・表示・共有URL・テーマ・言語）
+└── style.css                     # ライト・ダークの配色とレイアウト
 ```
 
 ---
