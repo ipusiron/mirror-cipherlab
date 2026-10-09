@@ -7,9 +7,10 @@ const { EXAMPLES, textOf } = load('js/examples.js').MirrorExamples;
 const cp = (...codes) => String.fromCodePoint(...codes);
 const byKey = (k) => EXAMPLES.find((e) => e.key === k);
 const run = (ex, lang = 'ja') => C.transform(textOf(ex, lang), ex);
+const LF = String.fromCodePoint(0x0A);
 
-test('例文は6つで、設定の値がすべて一覧にある', () => {
-  assert.deepEqual(EXAMPLES.map((e) => e.key), ['swift', 'carroll', 'ambulance', 'truck', 'emoji', 'double']);
+test('例文は7つで、設定の値がすべて一覧にある', () => {
+  assert.deepEqual(EXAMPLES.map((e) => e.key), ['swift', 'carroll', 'ambulance', 'truck', 'emoji', 'ox', 'double']);
   for (const ex of EXAMPLES) {
     assert.ok(C.MODES.includes(ex.mode), `${ex.key}: ${ex.mode}`);
     assert.ok(C.MIRRORS.includes(ex.mirror), `${ex.key}: ${ex.mirror}`);
@@ -51,6 +52,17 @@ test('絵文字と結合文字: 見た目の1文字のまま逆順になる', ()
   assert.equal(run(ex), expected);
   const c = C.counts(ex.text);
   assert.ok(c.codePoints > c.graphemes, '書記素とコードポイントの数が違う例になっている');
+});
+
+test('牛耕式: 偶数行だけが逆順になり、左右の鏡像と組むと石碑の書き方になる', () => {
+  const ex = byKey('ox');
+  const lines = run(ex).split(LF);
+  const src = ex.text.split(LF);
+  assert.equal(lines.length, 4);
+  assert.deepEqual([lines[0], lines[2]], [src[0], src[2]], '奇数行はそのまま');
+  assert.deepEqual([lines[1], lines[3]], [C.reverseAll(src[1]), C.reverseAll(src[3])], '偶数行は逆順');
+  assert.equal(C.describeCombination(ex.mode, ex.mirror), 'oxTurning');
+  assert.deepEqual(C.reversedLines(ex.text), [1, 3]);
 });
 
 test('ブロックの二重化: 全文の逆順と同じ', () => {

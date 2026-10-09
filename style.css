@@ -536,6 +536,17 @@ html,body{
 /* Mirroring classes for preview */
 .mirror-h{ transform: scaleX(-1); }
 .mirror-v{ transform: scaleY(-1); }
+.mirror-hv{ transform: scale(-1, -1); }
+
+/* Boustrophedon: only the lines that change direction are mirrored */
+.ox-line{
+  display:block;
+  transform-origin:center;
+}
+
+.ox-line.ox-h{ transform: scaleX(-1); }
+.ox-line.ox-v{ transform: scaleY(-1); }
+.ox-line.ox-hv{ transform: scale(-1, -1); }
 
 /* Preview fonts (switched by class, not by inline style) */
 .font-system-ui{
@@ -920,6 +931,9 @@ html,body{
 }
 
 .compare-link a{
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
   color:var(--link);
 }
 

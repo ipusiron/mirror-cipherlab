@@ -36,15 +36,16 @@
    * eachSentence 文ごとに逆順（文の並びは保つ）
    * blocks      n 字ごとに区切り、ブロックの中で逆順
    * blocksThenOrder ブロックの中で逆順にしたうえで、ブロックの並びも逆順（二重化）
+   * boustrophedon 牛耕式。偶数行（2行目・4行目…）だけを逆順にする
    */
   var MODES = ['none', 'all', 'eachWord', 'wordOrder', 'eachLine', 'lineOrder',
-    'eachSentence', 'blocks', 'blocksThenOrder'];
+    'eachSentence', 'blocks', 'blocksThenOrder', 'boustrophedon'];
 
   /** ブロックの文字数を使う方式。 */
   var BLOCK_MODES = ['blocks', 'blocksThenOrder'];
 
-  /** 字形の鏡像（Step 2）。CSS で見た目だけを変える。 */
-  var MIRRORS = ['none', 'h', 'v'];
+  /** 字形の鏡像（Step 2）。CSS で見た目だけを変える。hv は180度の回転。 */
+  var MIRRORS = ['none', 'h', 'v', 'hv'];
 
   /** プレビューのフォント。 */
   var FONTS = ['system-ui', 'serif', 'monospace'];
@@ -154,6 +155,27 @@
   /** 行の並びを逆順にする（各行の中身は保つ）。 */
   function reverseLineOrder(text) {
     return splitLines(text).reverse().join('\n');
+  }
+
+  /**
+   * 牛耕式（ブストロフェドン）。偶数行だけを逆順にする。
+   * 牛が畑を耕すように、行ごとに書く向きを変える書き方である。
+   * 古代ギリシャの石碑やエトルリア文字に見られ、逆向きの行は字形も鏡像で刻まれた
+   * （字形の反転は Step 2 の役目なので、ここでは並びだけを変える）。
+   */
+  function boustrophedon(text) {
+    return splitLines(text).map(function (line, i) {
+      return i % 2 === 1 ? reverseAll(line) : line;
+    }).join('\n');
+  }
+
+  /** 牛耕式で、向きが逆になる行（0 から数えた行番号）。画面はこの行だけ字形を鏡像にする。 */
+  function reversedLines(text) {
+    var out = [];
+    splitLines(text).forEach(function (line, i) {
+      if (i % 2 === 1) out.push(i);
+    });
+    return out;
   }
 
   /**
@@ -457,6 +479,7 @@
       case 'eachSentence': out = reverseEachSentence(src); break;
       case 'blocks': out = reverseBlocks(src, o.blockSize); break;
       case 'blocksThenOrder': out = reverseBlocksThenOrder(src, o.blockSize); break;
+      case 'boustrophedon': out = boustrophedon(src); break;
       default: out = src;
     }
     return o.fixCase ? capitalizeSentenceStarts(out) : out;
@@ -468,11 +491,15 @@
    */
   function describeCombination(mode, mirror) {
     var m = MIRRORS.indexOf(mirror) >= 0 ? mirror : 'none';
+    if (mode === 'boustrophedon') {
+      // 牛耕式は、逆向きの行だけを鏡像にしたときに石碑の書き方と同じになる
+      return m === 'h' ? 'oxTurning' : 'oxTurningPlain';
+    }
     if (mode === 'none') {
-      return { none: 'plain', h: 'mirrorWriting', v: 'waterReflection' }[m];
+      return { none: 'plain', h: 'mirrorWriting', v: 'waterReflection', hv: 'rotated' }[m];
     }
     if (mode === 'all' || mode === 'blocksThenOrder') {
-      return { none: 'rightToLeft', h: 'glyphsOnly', v: 'reversedAndFlipped' }[m];
+      return { none: 'rightToLeft', h: 'glyphsOnly', v: 'reversedAndFlipped', hv: 'upsideDownOrder' }[m];
     }
     return m === 'none' ? 'dataOnly' : 'dataAndMirror';
   }
@@ -582,6 +609,8 @@
     reverseEachSentence: reverseEachSentence,
     reverseBlocks: reverseBlocks,
     reverseBlocksThenOrder: reverseBlocksThenOrder,
+    boustrophedon: boustrophedon,
+    reversedLines: reversedLines,
     reverseWordOrder: reverseWordOrder,
     tokenize: tokenize,
     lowerSentenceInitials: lowerSentenceInitials,

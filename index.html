@@ -41,6 +41,7 @@
             <option value="ambulance" data-i18n="example.ambulance"></option>
             <option value="truck" data-i18n="example.truck"></option>
             <option value="emoji" data-i18n="example.emoji"></option>
+            <option value="ox" data-i18n="example.ox"></option>
             <option value="double" data-i18n="example.double"></option>
           </select>
         </div>
@@ -88,6 +89,7 @@
               <option value="eachSentence" data-i18n="mode.eachSentence"></option>
               <option value="blocks" data-i18n="mode.blocks"></option>
               <option value="blocksThenOrder" data-i18n="mode.blocksThenOrder"></option>
+              <option value="boustrophedon" data-i18n="mode.boustrophedon"></option>
             </select>
             <p id="reversalHint" class="hint"></p>
           </div>
@@ -112,6 +114,7 @@
               <option value="none" data-i18n="mirror.none"></option>
               <option value="h" data-i18n="mirror.h"></option>
               <option value="v" data-i18n="mirror.v"></option>
+              <option value="hv" data-i18n="mirror.hv"></option>
             </select>
           </div>
 
@@ -174,12 +177,17 @@
           <span class="btn-icon" aria-hidden="true">💾</span>
           <span data-i18n="btn.download"></span>
         </button>
+        <button id="btnDownloadPng" type="button" class="btn btn-ghost">
+          <span class="btn-icon" aria-hidden="true">🖼️</span>
+          <span data-i18n="btn.downloadPng"></span>
+        </button>
         <button id="btnShare" type="button" class="btn btn-primary">
           <span class="btn-icon" aria-hidden="true">🔗</span>
           <span data-i18n="btn.share"></span>
         </button>
       </div>
       <p class="hint" data-i18n="output.copyNote"></p>
+      <p id="pngStatus" class="hint" role="status" hidden></p>
       <p id="shareStatus" class="share-status" role="status" hidden></p>
       <div class="share-box" id="shareBox" hidden>
         <label for="shareUrl" class="share-label" data-i18n="share.urlLabel"></label>
@@ -279,6 +287,7 @@
   <script src="./js/examples.js"></script>
   <script src="./js/mirror-core.js"></script>
   <script src="./js/reversal-compare.js"></script>
+  <script src="./js/render-image.js"></script>
   <script src="./js/lang-model.js"></script>
   <script src="./js/solver.js"></script>
   <script src="./script.js"></script>

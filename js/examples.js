@@ -54,6 +54,15 @@
       mirror: 'none'
     },
     {
+      // 牛耕式。偶数行だけ向きが変わる（Step 2 の左右の鏡像と組むと石碑と同じ見え方）
+      key: 'ox',
+      text: ['牛が畑を耕すように', '行ごとに向きを変えて', '文字を刻んでいきます', 'これが牛耕式です'].join('\n'),
+      en: ['as an ox turns while plowing', 'the writing changes direction',
+        'at the end of every line', 'this is boustrophedon'].join('\n'),
+      mode: 'boustrophedon',
+      mirror: 'h'
+    },
+    {
       // ブロックの中を逆にしてからブロックの並びも逆にすると、全文の逆順と同じになる
       key: 'double',
       text: 'ATTACKATDAWN',

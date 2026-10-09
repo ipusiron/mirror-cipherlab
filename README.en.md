@@ -52,6 +52,10 @@ Try it directly in your browser.
 >
 >*Guessing which reordering was used, most sentence-like first*
 
+>![Boustrophedon with only the even lines mirrored](assets/en/screenshot7.png)
+>
+>*Boustrophedon (direction changes per line; only those lines have mirrored glyphs)*
+
 The default Windows fonts have no flag emoji, so flags are shown as two regional indicator letters (such as JP and US).
 
 ---
@@ -73,6 +77,7 @@ This step reorders the string itself. Copying, saving and sharing use this resul
 | Reverse each sentence | Keeps sentence-ending marks and spaces in place and reverses the text of each sentence | `Line one. Line two!` | `eno eniL. owt eniL!` |
 | Reverse each block (n=5) | Splits the text into blocks of n characters and reverses each block | `ATTACKATDAWN` | `CATTAADTAKNW` |
 | Reverse each block, then the block order (n=5) | Reverses each block, then the order of the blocks | `ATTACKATDAWN` | `NWADTAKCATTA` |
+| Boustrophedon | Reverses the even lines (the 2nd, 4th and so on) | `abc\ndef` | `abc\nfed` |
 
 - The block size is 2 to 20 (default 5).
 - "Fix capitals at sentence starts" capitalizes the new sentence starts after reordering (see "How it works").
@@ -84,6 +89,9 @@ This step reorders the string itself. Copying, saving and sharing use this resul
 | No mirror | none | As it is |
 | Horizontal mirror | `transform: scaleX(-1)` | As seen in an upright mirror |
 | Vertical mirror | `transform: scaleY(-1)` | As reflected in water |
+| Rotate 180 degrees | `transform: scale(-1, -1)` | As seen with the paper turned upside down |
+
+With boustrophedon the mirror is applied line by line: only the lines that run the other way are flipped, matching the stone inscriptions.
 
 The string does not change, so copied text is in the normal orientation.
 
@@ -98,6 +106,8 @@ For each combination of Step 1 and Step 2, the page explains how it looks, gives
 | Reverse the whole text | No mirror | Read from right to left | Does not turn back | Company names on the right side of Japanese trucks |
 | Reverse the whole text | Horizontal mirror | Original order, flipped glyphs | Does not turn back | Like a row of hidari-uma ("left horse") charms |
 | Reverse the whole text | Vertical mirror | Reversed and flipped upside down | Does not turn back | — |
+| Reverse the whole text | Rotate 180 degrees | The reversal and the rotation cancel out | Does not turn back | — |
+| Boustrophedon | Horizontal mirror | Direction changes every line; the reversed lines have mirrored glyphs | Does not turn back | Ancient Greek inscriptions, Etruscan |
 | Any other mode | With or without a mirror | Only the text is reordered (and mirrored) | Does not turn back | — |
 
 ### Three kinds of reversal
@@ -124,9 +134,9 @@ The statistics live in `js/lang-model.js`, built from public domain texts (see "
 
 ### Other features
 
-- Six examples (Swift, Carroll, ambulance, truck, emoji, doubling). Choosing one sets the text and the settings.
+- Seven examples (Swift, Carroll, ambulance, truck, emoji, boustrophedon, doubling). Choosing one sets the text and the settings.
 - Shows three counts: visible characters, code points and UTF-16 length.
-- Copies the result and saves it as a text file.
+- Copies the result, and saves it as a text file or a PNG image.
 - Share URL (the text and settings go after `#` in the URL; the length is shown, with a warning above 2,000 characters).
 - Dark and light modes (follows the OS setting; a button switches them).
 - Japanese and English UI (also selectable with `?lang=ja` or `?lang=en`; the choice is saved in the browser).
@@ -249,6 +259,14 @@ Where punctuation rules do not decide the spacing, the tool copies whether the s
 - Blocks: line breaks count as characters. The last block may be shorter, and it is reversed too.
 - Doubling: reversing the whole text is the same as reversing the order of the blocks and reversing within each block, so the result always equals reversing the whole text, whatever the block size (the tests check sizes 2 to 20).
 
+### Boustrophedon
+
+Only the even lines (the 2nd, 4th and so on) are reversed.
+It is the way of writing that turns at the end of each line, as an ox turns while plowing (the name comes from the Ancient Greek for "ox" and "turn").
+It appears on ancient Greek stone inscriptions and in Etruscan, and **the lines running the other way were carved with mirrored letters**.
+In this tool Step 1 handles the order and Step 2 handles the glyphs.
+Choosing "Horizontal mirror" in Step 2 flips only the lines that run the other way, which matches the inscriptions.
+
 ### Applying twice restores the text
 
 Every mode restores the original text when applied again with the same settings.
@@ -261,6 +279,14 @@ Words that were capitalized only because they started a sentence are lowercased 
 One-letter words such as "I" and words with capitals after the first letter such as "NASA" are left as they are.
 Sentence boundaries are detected by sentence-ending marks (. ! ? …).
 Proper nouns are not detected, so a proper noun at the start of a sentence becomes lowercase (this is why "Uncle" at the end of Example 1 becomes "uncle").
+
+### Saving as an image
+
+The Step 2 mirror is a CSS transform, so a plain capture of the page would not contain it.
+"Save as image" redraws the characters onto a canvas and applies the same transform.
+With boustrophedon the transform changes per line, flipping only the lines that run the other way.
+Long text is cut at 60 lines and 200 characters per line, and the page says so.
+The background and text colors follow the current theme.
 
 ### Accuracy of the guessing
 
@@ -301,7 +327,7 @@ Short text is harder, and the page warns when the input is under 12 characters.
 Mirror writing has attracted attention more as a cultural and psychological phenomenon than as a cipher.
 
 - Ancient examples
-  - Etruscan was often written from right to left. Stone inscriptions in ancient Greece and elsewhere used boustrophedon, which changes direction every line, and the letters in reversed lines were also mirrored.
+  - Etruscan was often written from right to left. Stone inscriptions in ancient Greece and elsewhere used boustrophedon, which changes direction every line, and the letters in reversed lines were also mirrored (the "Boustrophedon" mode with a horizontal mirror reproduces this).
 - Famous modern examples
   - Leonardo da Vinci's notebooks contain many records in mirror writing, and there are several theories, such as secrecy or the ease of writing for a left-handed person.
   - The neurologist Macdonald Critchley described the phenomenon of mirror writing in the book *Mirror-Writing* (1928).
@@ -348,7 +374,8 @@ In short, its value as a cipher is **limited to education and play**.
 ### Everyday life and hobbies
 
 - Making puzzles and escape games: create puzzles with word-order reversal or block reversal, and check the answer by applying the same settings again.
-- Letters and cards: copy by hand a message that can be read in a mirror, looking at the mirrored display.
+- Letters and cards: save a message that can be read in a mirror as an image and print it.
+- Follow an ancient hand: write a few lines in boustrophedon and save the image to see the direction turn line by line.
 
 ### Security
 
@@ -435,19 +462,22 @@ mirror-cipherlab/
 │   │   ├── screenshot3.png       # Reversing emoji and combining marks (English)
 │   │   ├── screenshot4.png       # Ambulance example (English, dark mode)
 │   │   ├── screenshot5.png       # Comparison of the three kinds of reversal (English)
-│   │   └── screenshot6.png       # Guessing which reordering was used (English)
+│   │   ├── screenshot6.png       # Guessing which reordering was used (English)
+│   │   └── screenshot7.png       # Boustrophedon and saving as an image (English)
 │   ├── screenshot.png            # Ambulance example (mirror writing)
 │   ├── screenshot2.png           # Reading Carroll's letter with word-order reversal
 │   ├── screenshot3.png           # Reversing emoji and combining marks as whole characters
 │   ├── screenshot4.png           # Ambulance example (dark mode)
 │   ├── screenshot5.png           # Comparison of the three kinds of reversal
-│   └── screenshot6.png           # Guessing which reordering was used
+│   ├── screenshot6.png           # Guessing which reordering was used
+│   └── screenshot7.png           # Boustrophedon and saving as an image
 ├── js/                           # Scripts loaded by the page
 │   ├── examples.js               # Six examples (text and settings)
 │   ├── messages.js               # UI strings (Japanese and English)
 │   ├── mirror-core.js            # Reordering and share-URL encoding (no DOM)
 │   ├── solver.js                 # The solver (applies every inverse and ranks by how sentence-like the result is)
 │   ├── lang-model.js             # Statistics for scoring text (generated by build_lang_model.py)
+│   ├── render-image.js           # Redraws the shown text into a PNG (no DOM)
 │   └── reversal-compare.js       # Comparison of the three reversals and the RLO example (no DOM)
 ├── test/                         # Automated tests (node --test)
 │   ├── contrast.test.js          # Contrast ratios of the light and dark themes
@@ -458,6 +488,7 @@ mirror-cipherlab/
 │   ├── load.js                   # Helper that loads js/*.js into the tests
 │   ├── messages.test.js          # Missing or unused dictionary keys
 │   ├── mirror-core.test.js       # Reordering modes, graphemes and round trips
+│   ├── render-image.test.js      # Redrawing the image and the per-line flips
 │   ├── readme.test.js            # Examples, tables, YAML and tree in the READMEs
 │   ├── reversal-compare.test.js  # Three reversals, RLO and the link to Day023
 │   ├── script.test.js            # Static checks of the UI script
