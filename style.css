@@ -628,6 +628,33 @@ html,body{
   font-size:13px;
 }
 
+.share-status.is-warn{
+  border-left:3px solid var(--danger);
+  padding-left:var(--spacing-sm);
+}
+
+.share-box{
+  display:flex;
+  flex-direction:column;
+  gap:var(--spacing-xs);
+}
+
+.share-label{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.share-box input{
+  width:100%;
+  min-width:0;
+  background:var(--input-bg);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:var(--spacing-sm) var(--spacing-md);
+  font-size:16px;
+}
+
 .noscript{
   max-width:900px;
   margin:var(--spacing-lg) auto;

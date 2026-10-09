@@ -40,6 +40,9 @@
   const elComboTitle = $("#comboTitle");
   const elComboText = $("#comboText");
   const elComboMirror = $("#comboMirror");
+  const elShareStatus = $("#shareStatus");
+  const elShareBox = $("#shareBox");
+  const elShareUrl = $("#shareUrl");
 
   const btnClear = $("#btnClear");
   const btnCopyIn = $("#btnCopyIn");
@@ -69,38 +72,71 @@
     });
   }
 
-  // ---------- テーマ ----------
+  // ---------- 保存（localStorage が使えない環境でも止めない） ----------
 
-  function getTheme() {
-    return localStorage.getItem("theme") || "dark";
+  const THEME_STORAGE_KEY = "theme";
+
+  /** localStorage の読み書きを包む。プライベートモードやストレージの拒否で例外が出ても止めない。 */
+  function withStorage(action, fallback) {
+    try {
+      return action(window.localStorage);
+    } catch (e) {
+      return fallback;
+    }
   }
 
-  function setTheme(theme) {
+  // ---------- テーマ ----------
+
+  /** テーマは、保存した選択 → OS の設定 → ダークの順で決める。 */
+  function initialTheme() {
+    const saved = withStorage((s) => s.getItem(THEME_STORAGE_KEY), null);
+    if (saved === "dark" || saved === "light") return saved;
+    const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+    return prefersLight ? "light" : "dark";
+  }
+
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+  }
+
+  function setTheme(theme, save) {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
+    if (save) withStorage((s) => s.setItem(THEME_STORAGE_KEY, theme), null);
     renderThemeButton();
   }
 
   function renderThemeButton() {
-    const dark = document.documentElement.getAttribute("data-theme") !== "light";
+    const dark = currentTheme() === "dark";
     themeIcon.textContent = dark ? "☀️" : "🌙";
     themeToggle.setAttribute("aria-label", t(dark ? "theme.toLight" : "theme.toDark"));
   }
 
   function toggleTheme() {
-    setTheme(getTheme() === "dark" ? "light" : "dark");
+    setTheme(currentTheme() === "dark" ? "light" : "dark", true);
   }
 
   // ---------- 通知 ----------
 
+  let toastTimer = 0;
+
+  /** トーストを出す。続けて出したときは、前のタイマーを止めてから数え直す。 */
   function showToast(msg) {
+    clearTimeout(toastTimer);
     toast.textContent = msg;
     toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 1600);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
+  }
+
+  /** クリップボードに書く。API がない環境（非セキュアな http など）では失敗として扱う。 */
+  function writeClipboard(text) {
+    if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+      return Promise.reject(new Error("clipboard unavailable"));
+    }
+    return navigator.clipboard.writeText(text);
   }
 
   function copyText(text) {
-    navigator.clipboard.writeText(text).then(() => {
+    writeClipboard(text).then(() => {
       showToast(t("toast.copied"));
     }).catch(() => {
       showToast(t("toast.copyFailed"));
@@ -114,7 +150,8 @@
     a.href = url;
     a.download = filename;
     a.click();
-    URL.revokeObjectURL(url);
+    // すぐに解放すると、ブラウザーによっては保存が始まる前に URL が消える
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   // ---------- 変換と描画 ----------
@@ -210,18 +247,50 @@
     };
   }
 
+  /**
+   * 共有URLの状態の文。言語を切り替えたら描き直すので、文字列ではなく
+   * 「キー＋差し込む値」の並びで持つ。
+   */
+  let shareMessage = null;
+
+  function renderShareStatus() {
+    if (!shareMessage) {
+      elShareStatus.hidden = true;
+      return;
+    }
+    elShareStatus.hidden = false;
+    elShareStatus.textContent = shareMessage.parts.map((p) => t(p.key, p.vars)).join(" ");
+    elShareStatus.classList.toggle("is-warn", shareMessage.warn);
+  }
+
+  function setShareMessage(parts, warn) {
+    shareMessage = { parts, warn: !!warn };
+    renderShareStatus();
+  }
+
+  /** 共有URLを作ってコピーし、URL と長さを画面にも出す（コピーできない環境でも手で選べるように）。 */
   function shareURL() {
     const share = Core.shareUrl(location.href, currentState());
-    navigator.clipboard.writeText(share.url).then(() => {
-      showToast(t("share.copied", { length: share.length.toLocaleString() }));
-    }).catch(() => {
-      showToast(t("share.failed"));
+    const length = share.length.toLocaleString("en-US");
+    elShareUrl.value = share.url;
+    elShareBox.hidden = false;
+    writeClipboard(share.url).then(() => "share.copied", () => "share.failed").then((key) => {
+      const parts = [{ key, vars: { length } }];
+      if (share.warn) parts.push({ key: "share.long", vars: { length } });
+      setShareMessage(parts, share.warn || key === "share.failed");
+      showToast(t(key, { length }));
     });
   }
 
+  /** URL のハッシュから状態を読む。読めなかったときは理由を画面に出す。 */
   function loadFromHash() {
     const result = Core.decodeShare(location.hash);
-    if (!result.ok) return;
+    if (!result.ok) {
+      if (result.error !== "empty") {
+        setShareMessage([{ key: result.error === "tooLong" ? "share.tooLong" : "share.format" }], true);
+      }
+      return;
+    }
     const s = result.state;
     elInput.value = s.text;
     elReversal.value = s.mode;
@@ -229,13 +298,16 @@
     elFont.value = s.font;
     elBlockSize.value = String(s.blockSize);
     elFixCase.checked = s.fixCase;
+    elExample.value = "";
     setFont(s.font);
     update();
+    setShareMessage([{ key: "share.loaded" }], false);
   }
 
   // ---------- イベント ----------
 
   themeToggle.addEventListener("click", toggleTheme);
+  window.addEventListener("hashchange", loadFromHash);
 
   elInput.addEventListener("input", () => {
     elExample.value = "";
@@ -267,7 +339,7 @@
   // ---------- 初期化 ----------
 
   applyI18n();
-  setTheme(getTheme());
+  setTheme(initialTheme(), false);
   setFont(elFont.value);
   elReversal.value = "all";
   loadFromHash();
