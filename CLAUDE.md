@@ -31,6 +31,9 @@ Classic scripts (no modules, so `file://` works), loaded in this order by `index
 - `js/messages.js` - `MirrorMessages`: UI strings by key (`ja`, `en`), `t(lang, key, vars)` fills `{name}`
 - `js/examples.js` - `MirrorExamples`: six examples (text + settings)
 - `js/mirror-core.js` - `MirrorCore`: pure logic, no DOM (tests load it with `vm.runInThisContext`)
+- `js/reversal-compare.js` - `MirrorCompare`: facts behind the three kinds of reversal (reversed data, mirrored look, RLO), code point lists, the Day023 link
+- `js/lang-model.js` - `MirrorLangModel`: **generated file**. Character n-gram log probabilities (English 4-gram + 2,000 common words, Japanese 3-gram with the 400 most frequent kanji kept). Rebuild with `build_lang_model.py` on the work side; never edit by hand
+- `js/solver.js` - `MirrorSolver`: applies the inverse of every mode (block sizes 2-20) and ranks the results by how sentence-like they are
 - `script.js` - UI only (events, rendering, theme, language, share URL)
 
 **Step 1 modes** (`MirrorCore.MODES`): `none`, `all`, `eachWord`, `wordOrder`, `eachLine`, `lineOrder`, `eachSentence`, `blocks`, `blocksThenOrder`.
@@ -64,6 +67,18 @@ Classic scripts (no modules, so `file://` works), loaded in this order by `index
 **UI strings:** never hard-code text in HTML or JS; add keys to both `ja` and `en` in `js/messages.js` and reference them with `data-i18n`, `data-i18n-placeholder` or `data-i18n-label`.
 
 **Colors:** only as CSS variables in `:root` (dark, default) and `:root[data-theme="light"]`; `test/contrast.test.js` checks text pairs (4.5:1) and the focus ring (3:1).
+
+## The solver
+
+`MirrorSolver.solve(text, {lang, topN, fixCase})` returns `{lang, enough, length, baseline, results}`.
+Every mode is an involution, so applying the same mode again restores the text; the solver simply applies all of them and ranks the outputs by `score()`.
+Candidates that produce the same text are merged: the first one keeps the entry and the rest go into its `also` array (the UI collapses block sizes of the same mode).
+`score()` is the mean log probability of the character n-grams; for English it adds `WORD_WEIGHT * wordCoverage()`.
+`bestGuess()` returns null when the input is shorter than `MIN_LENGTH` or when the top candidate does not beat the input itself.
+
+Accuracy is measured on held-out text by `eval_decoder.py` / `eval_decoder.cjs` on the work side, and the numbers go in the README. Rerun them after touching the model or `score()`.
+
+Known limits: Japanese `eachWord` is not an involution, so it never appears among the candidates, and `wordOrder` is hard to tell apart in both languages.
 
 ## Security Considerations
 

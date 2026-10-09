@@ -186,6 +186,72 @@
         <input id="shareUrl" type="text" readonly spellcheck="false">
       </div>
     </section>
+
+    <section class="panel panel-compare" aria-labelledby="compareHeading">
+      <div class="panel-header">
+        <h2 id="compareHeading" data-i18n="compare.heading"></h2>
+      </div>
+      <p class="hint" data-i18n="compare.lead"></p>
+      <p id="compareEmpty" class="hint hint-warn" hidden data-i18n="compare.empty"></p>
+      <p id="compareSample" class="hint" hidden></p>
+      <div class="compare-grid">
+        <article class="compare-card compare-data" aria-labelledby="cmpDataTitle">
+          <h3 id="cmpDataTitle" data-i18n="compare.data.title"></h3>
+          <p class="compare-sub" data-i18n="compare.data.sub"></p>
+          <p class="compare-render" id="cmpDataRender"></p>
+          <dl class="compare-facts" id="cmpDataFacts"></dl>
+          <p class="cp-caption" id="cmpDataCpCaption"></p>
+          <ol class="cp-list" id="cmpDataCps"></ol>
+        </article>
+        <article class="compare-card compare-mirror" aria-labelledby="cmpMirrorTitle">
+          <h3 id="cmpMirrorTitle" data-i18n="compare.mirror.title"></h3>
+          <p class="compare-sub" data-i18n="compare.mirror.sub"></p>
+          <p class="compare-render mirror-h" id="cmpMirrorRender"></p>
+          <dl class="compare-facts" id="cmpMirrorFacts"></dl>
+          <p class="cp-caption" id="cmpMirrorCpCaption"></p>
+          <ol class="cp-list" id="cmpMirrorCps"></ol>
+        </article>
+        <article class="compare-card compare-rlo" aria-labelledby="cmpRloTitle">
+          <h3 id="cmpRloTitle" data-i18n="compare.rlo.title"></h3>
+          <p class="compare-sub" data-i18n="compare.rlo.sub"></p>
+          <p class="compare-render bidi-demo" id="cmpRloRender"></p>
+          <dl class="compare-facts" id="cmpRloFacts"></dl>
+          <p class="cp-caption" id="cmpRloCpCaption"></p>
+          <ol class="cp-list" id="cmpRloCps"></ol>
+        </article>
+      </div>
+      <p class="compare-link"><a id="cmpRloLink" href="#" target="_blank" rel="noopener noreferrer" data-i18n="compare.inspect"></a></p>
+      <p class="hint" data-i18n="compare.note"></p>
+    </section>
+
+    <section class="panel panel-solve" aria-labelledby="solveHeading">
+      <div class="panel-header">
+        <h2 id="solveHeading" data-i18n="solve.heading"></h2>
+      </div>
+      <p class="hint" data-i18n="solve.lead"></p>
+
+      <label for="solveInput" class="control-label" data-i18n="solve.label"></label>
+      <textarea id="solveInput" maxlength="50000" spellcheck="false" data-i18n-placeholder="solve.placeholder"></textarea>
+
+      <div class="solve-controls">
+        <div class="control">
+          <label class="control-label" for="solveLang" data-i18n="solve.lang"></label>
+          <select id="solveLang">
+            <option value="auto" data-i18n="solve.lang.auto"></option>
+            <option value="en" data-i18n="solve.lang.en"></option>
+            <option value="ja" data-i18n="solve.lang.ja"></option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button id="btnSolveFromOutput" type="button" class="btn btn-ghost" data-i18n="solve.fromOutput"></button>
+          <button id="btnSolveClear" type="button" class="btn btn-ghost" data-i18n="solve.clear"></button>
+        </div>
+      </div>
+
+      <p id="solveStatus" class="hint" aria-live="polite"></p>
+      <ol class="solve-results" id="solveResults"></ol>
+      <p class="hint" data-i18n="solve.note"></p>
+    </section>
   </main>
 
   <section class="notes">
@@ -212,6 +278,9 @@
   <script src="./js/messages.js"></script>
   <script src="./js/examples.js"></script>
   <script src="./js/mirror-core.js"></script>
+  <script src="./js/reversal-compare.js"></script>
+  <script src="./js/lang-model.js"></script>
+  <script src="./js/solver.js"></script>
   <script src="./script.js"></script>
 </body>
 </html>

@@ -12,6 +12,8 @@
   const Core = window.MirrorCore;
   const Msg = window.MirrorMessages;
   const Examples = window.MirrorExamples;
+  const Compare = window.MirrorCompare;
+  const Solver = window.MirrorSolver;
 
   /** 入力がこの長さを超えたら、打鍵ごとではなく少し待ってから変換する。 */
   const DEBOUNCE_LENGTH = 5000;
@@ -44,6 +46,27 @@
   const elShareStatus = $("#shareStatus");
   const elShareBox = $("#shareBox");
   const elShareUrl = $("#shareUrl");
+  const elCompareEmpty = $("#compareEmpty");
+  const elCompareSample = $("#compareSample");
+  const elCmpRloLink = $("#cmpRloLink");
+
+  const elSolveInput = $("#solveInput");
+  const elSolveLang = $("#solveLang");
+  const elSolveStatus = $("#solveStatus");
+  const elSolveResults = $("#solveResults");
+  const btnSolveFromOutput = $("#btnSolveFromOutput");
+  const btnSolveClear = $("#btnSolveClear");
+
+  /** 比較のカード3枚の要素（データの逆・見た目の鏡像・表示だけの逆）。 */
+  const compareCards = {};
+  for (const [name, id] of [["data", "Data"], ["mirror", "Mirror"], ["rlo", "Rlo"]]) {
+    compareCards[name] = {
+      render: $(`#cmp${id}Render`),
+      facts: $(`#cmp${id}Facts`),
+      caption: $(`#cmp${id}CpCaption`),
+      cps: $(`#cmp${id}Cps`)
+    };
+  }
 
   const btnClear = $("#btnClear");
   const btnCopyIn = $("#btnCopyIn");
@@ -111,6 +134,7 @@
     renderThemeButton();
     renderStatus();
     renderShareStatus();
+    renderSolve();
   }
 
   // ---------- テーマ ----------
@@ -237,6 +261,169 @@
     elComboText.textContent = t(`combo.${key}.text`);
     elComboMirror.textContent = t(readable ? "combo.mirrorYes" : "combo.mirrorNo");
     elComboMirror.classList.toggle("is-yes", readable);
+    renderCompare();
+  }
+
+  // ---------- 3つの「逆」の比較 ----------
+
+  /** 比較に使う文字数の上限（長い文でも、違いは先頭だけで十分に見える）。 */
+  const COMPARE_LIMIT = 24;
+
+  /** コードポイントの一覧を <li> で並べる。文字は textContent で入れる。 */
+  function renderCodePoints(target, list) {
+    target.replaceChildren();
+    for (const item of list.items) {
+      const li = document.createElement("li");
+      li.className = `cp cp-${item.kind}`;
+      const glyph = document.createElement("span");
+      glyph.className = "cp-glyph";
+      glyph.textContent = item.label;
+      const code = document.createElement("span");
+      code.className = "cp-code";
+      code.textContent = item.hex;
+      li.append(glyph, code);
+      target.append(li);
+    }
+  }
+
+  /** 1枚のカード（事実の表・見え方・コードポイント）を描く。 */
+  function renderCompareCard(name, facts, copyKey) {
+    const box = compareCards[name];
+    box.render.textContent = facts.shown;
+    const rows = [
+      ["fact.order", t(facts.orderKept ? "fact.kept" : "fact.changed")],
+      ["fact.search", t(facts.containsOriginal ? "fact.found" : "fact.notFound")],
+      ["fact.added", t("fact.addedCount", { n: facts.addedCodePoints })],
+      ["fact.copy", t(copyKey)]
+    ];
+    box.facts.replaceChildren();
+    for (const [key, value] of rows) {
+      const dt = document.createElement("dt");
+      dt.textContent = t(key);
+      const dd = document.createElement("dd");
+      dd.textContent = value;
+      box.facts.append(dt, dd);
+    }
+    box.caption.textContent = t("compare.cpCaption", {
+      shown: facts.codePoints.items.length,
+      total: facts.codePoints.total
+    });
+    renderCodePoints(box.cps, facts.codePoints);
+  }
+
+  /** 入力の先頭を題材に、3つの「逆」を並べる。 */
+  function renderCompare() {
+    const full = elInput.value;
+    const sample = Array.from(full).slice(0, COMPARE_LIMIT).join("");
+    elCompareEmpty.hidden = sample.length > 0;
+    elCompareSample.hidden = Array.from(full).length <= COMPARE_LIMIT;
+    elCompareSample.textContent = t("compare.sample", { n: COMPARE_LIMIT });
+    const r = Compare.compare(sample);
+    renderCompareCard("data", r.data, "copy.data");
+    renderCompareCard("mirror", r.mirror, "copy.mirror");
+    renderCompareCard("rlo", r.rlo, "copy.rlo");
+    elCmpRloLink.href = Compare.day023Link(r.rlo.data);
+  }
+
+  // ---------- どの並べ替えかを当てる ----------
+
+  /** 直前の解読の結果（言語を切り替えたときに、計算し直さず描き直すため）。 */
+  let lastSolved = null;
+
+  /** 方式の名前（ブロックは長さを添える）。 */
+  function modeLabel(mode, blockSize) {
+    const name = t(`mode.${mode}`);
+    return Core.BLOCK_MODES.includes(mode) ? t("solve.blockLabel", { mode: name, n: blockSize }) : name;
+  }
+
+  /** 候補1件の行を作る。 */
+  function solveRow(item) {
+    const li = document.createElement("li");
+    li.className = "solve-item";
+
+    const head = document.createElement("p");
+    head.className = "solve-mode";
+    head.textContent = modeLabel(item.mode, item.blockSize);
+    const score = document.createElement("span");
+    score.className = "solve-score";
+    score.textContent = item.score.toFixed(2);
+    head.append(score);
+
+    const text = document.createElement("p");
+    text.className = "solve-text";
+    text.textContent = item.text;
+
+    li.append(head, text);
+
+    if (item.sameAsInput) {
+      const same = document.createElement("p");
+      same.className = "hint";
+      same.textContent = t("solve.same");
+      li.append(same);
+    }
+    if (item.also.length) {
+      const also = document.createElement("p");
+      also.className = "hint";
+      // ブロックの長さが違うだけの同じ方式は、1つにまとめて出す（長さを全部並べない）
+      const sizes = new Map();
+      for (const a of item.also) {
+        if (!sizes.has(a.mode)) sizes.set(a.mode, []);
+        sizes.get(a.mode).push(a.blockSize);
+      }
+      const names = [...sizes].map(([mode, list]) => (
+        Core.BLOCK_MODES.includes(mode) && list.length > 1
+          ? t("solve.anySize", { mode: t(`mode.${mode}`) })
+          : modeLabel(mode, list[0])
+      ));
+      also.textContent = t("solve.also", { list: names.join(t("solve.alsoSep")) });
+      li.append(also);
+    }
+
+    const apply = document.createElement("button");
+    apply.type = "button";
+    apply.className = "btn btn-ghost btn-small";
+    apply.textContent = t("solve.apply");
+    apply.addEventListener("click", () => {
+      elInput.value = item.text;
+      elReversal.value = item.mode;
+      elBlockSize.value = String(item.blockSize);
+      elExample.value = "";
+      update();
+      elInput.scrollIntoView({ block: "center" });
+      elInput.focus();
+    });
+    li.append(apply);
+    return li;
+  }
+
+  /** 解読の結果を描く（計算は solveNow が行う）。 */
+  function renderSolve() {
+    elSolveResults.replaceChildren();
+    const text = elSolveInput.value;
+    if (!text) {
+      elSolveStatus.textContent = t("solve.empty");
+      return;
+    }
+    if (!lastSolved) return;
+    const parts = [];
+    if (!lastSolved.enough) {
+      parts.push(t("solve.short", { n: lastSolved.length, min: Solver.MIN_LENGTH }));
+    }
+    parts.push(t("solve.found", { lang: t(lastSolved.lang === "ja" ? "solve.langJa" : "solve.langEn") }));
+    elSolveStatus.textContent = parts.join(" ");
+    for (const item of lastSolved.results) elSolveResults.append(solveRow(item));
+  }
+
+  function solveNow() {
+    const text = elSolveInput.value;
+    lastSolved = text ? Solver.solve(text, { lang: elSolveLang.value }) : null;
+    renderSolve();
+  }
+
+  let solveTimer = 0;
+  function scheduleSolve() {
+    clearTimeout(solveTimer);
+    solveTimer = setTimeout(solveNow, DEBOUNCE_MS);
   }
 
   let timer = 0;
@@ -365,6 +552,17 @@
   });
   btnShare.addEventListener("click", shareURL);
 
+  elSolveInput.addEventListener("input", scheduleSolve);
+  elSolveLang.addEventListener("change", solveNow);
+  btnSolveFromOutput.addEventListener("click", () => {
+    elSolveInput.value = lastResult;
+    solveNow();
+  });
+  btnSolveClear.addEventListener("click", () => {
+    elSolveInput.value = "";
+    solveNow();
+  });
+
   // ---------- 初期化 ----------
 
   lang = initialLang();
@@ -374,4 +572,5 @@
   elReversal.value = "all";
   loadFromHash();
   update();
+  solveNow();
 })();
