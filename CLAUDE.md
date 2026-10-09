@@ -34,21 +34,23 @@ Classic scripts (no modules, so `file://` works), loaded in this order by `index
 - `js/reversal-compare.js` - `MirrorCompare`: facts behind the three kinds of reversal (reversed data, mirrored look, RLO), code point lists, the Day023 link
 - `js/lang-model.js` - `MirrorLangModel`: **generated file**. Character n-gram log probabilities (English 4-gram + 2,000 common words, Japanese 3-gram with the 400 most frequent kanji kept). Rebuild with `build_lang_model.py` on the work side; never edit by hand
 - `js/solver.js` - `MirrorSolver`: applies the inverse of every mode (block sizes 2-20) and ranks the results by how sentence-like they are
+- `js/render-image.js` - `MirrorRender`: redraws the shown text onto a canvas and applies the Step 2 transform, so the mirror ends up in the saved PNG
 - `script.js` - UI only (events, rendering, theme, language, share URL)
 
-**Step 1 modes** (`MirrorCore.MODES`): `none`, `all`, `eachWord`, `wordOrder`, `eachLine`, `lineOrder`, `eachSentence`, `blocks`, `blocksThenOrder`.
+**Step 1 modes** (`MirrorCore.MODES`): `none`, `all`, `eachWord`, `wordOrder`, `eachLine`, `lineOrder`, `eachSentence`, `blocks`, `blocksThenOrder`, `boustrophedon`.
 
 - All reordering is by grapheme cluster (`Intl.Segmenter`, granularity `grapheme`); falls back to code points if missing.
 - `eachWord` / `wordOrder` use `Intl.Segmenter` word granularity with a fixed locale (`ja`).
 - `wordOrder` reverses words and punctuation as units, attaches punctuation to the previous word, swaps paired brackets/quotes, and copies the source spacing for pairs not decided by punctuation rules (so it is an involution).
 - `eachSentence` keeps sentence-end marks (`SENTENCE_END`) and the whitespace touching them in place and reverses the text between them.
 - `blocksThenOrder` always equals `all` (proved by the tests for block sizes 2-20).
+- `boustrophedon` reverses the even lines only; `reversedLines()` returns which line indices changed direction, and both the preview and the PNG use it to flip just those lines.
 - `fixCase`: lowercases sentence-initial capitals before, capitalizes sentence starts after (sentence starts are detected by `SENTENCE_END`, not by UAX #29, because UAX #29 does not break before a lowercase word).
 - Every mode is an involution (applying it twice restores the input), except `eachWord` on Japanese (dictionary segmentation of reversed kanji differs).
 
-**Step 2 mirrors** (`MirrorCore.MIRRORS`): `none`, `h` (`scaleX(-1)`), `v` (`scaleY(-1)`), as CSS classes `.mirror-*`. Copy and download always use the Step 1 string.
+**Step 2 mirrors** (`MirrorCore.MIRRORS`): `none`, `h` (`scaleX(-1)`), `v` (`scaleY(-1)`), `hv` (`scale(-1, -1)`), as CSS classes `.mirror-*`. With `boustrophedon` the preview puts each line in a `.ox-line` span and applies `.ox-*` to the reversed lines instead of mirroring the whole block. Copy and download always use the Step 1 string.
 
-**Combination keys** (`describeCombination(mode, mirror)`): `plain`, `mirrorWriting`, `waterReflection`, `rightToLeft`, `glyphsOnly`, `reversedAndFlipped`, `dataOnly`, `dataAndMirror`. `readableInMirror` is true only for `none` + `h`/`v`.
+**Combination keys** (`describeCombination(mode, mirror)`): `plain`, `mirrorWriting`, `waterReflection`, `rotated`, `rightToLeft`, `glyphsOnly`, `reversedAndFlipped`, `upsideDownOrder`, `oxTurning`, `oxTurningPlain`, `dataOnly`, `dataAndMirror`. `readableInMirror` is true only for `none` + `h`/`v`.
 
 **Share URL**: `#` + base64url(JSON `{t, r, m, f, n?, c?}`) built from `location.href` (not `location.origin`, which is `"null"` on Firefox `file://`). `decodeShare` validates format, length (text up to 50,000 UTF-16 units, hash up to 300,000), whitelists values and maps legacy `r` values (`full` -> `all`, `word` -> `eachWord`). Loaded on start and on `hashchange`; errors are shown in `#shareStatus`.
 

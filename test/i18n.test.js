@@ -123,7 +123,7 @@ test('英語の画面のスクリーンショットはすべて実在し、READM
   for (const r of refs) assert.ok(fs.existsSync(path.join(ROOT, r)), `${r} がない`);
   const pngs = fs.readdirSync(path.join(ROOT, 'assets', 'en')).filter((f) => f.endsWith('.png')).map((f) => `assets/en/${f}`);
   assert.deepEqual(pngs.filter((p) => !refs.includes(p)), []);
-  assert.equal(refs.length, 6);
+  assert.equal(refs.length, 7);
 });
 
 test('2つのREADMEのディレクトリー構造は、同じ行を同じ順で並べる', () => {
