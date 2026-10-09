@@ -75,27 +75,12 @@
     URL.revokeObjectURL(url);
   }
 
-  // Reversal functions
-  function reverseFull(str){
-    // Split by code points to support surrogate pairs, emojis
-    // [...str] expands by code points in modern browsers
-    return [...str].reverse().join("");
-  }
-
-  function reverseWordWise(str){
-    // Split by whitespace groups; reverse each token's characters, keep order
-    // Keep whitespace as-is using split with capture
-    const parts = str.split(/(\s+)/);
-    return parts.map(p => /\s+/.test(p) ? p : reverseFull(p)).join("");
-  }
+  // Reversal (Step 1) is done by MirrorCore (js/mirror-core.js), grapheme by grapheme.
+  // The select still uses the old values; map them to MirrorCore modes.
+  const MODE_OF = { full: "all", word: "eachWord", none: "none" };
 
   function applyReversal(input, mode){
-    switch(mode){
-      case "full": return reverseFull(input);
-      case "word": return reverseWordWise(input);
-      case "none": return input;
-      default: return input;
-    }
+    return MirrorCore.transform(input, { mode: MODE_OF[mode] || "all" });
   }
 
   // Glyph mirror (visual-only) via CSS classes
@@ -128,7 +113,7 @@
     elStepMir.textContent = reversed;
     setMirrorClass(elStepMir, modeMirror);
 
-    elCharCount.textContent = `${[...raw].length} chars`;
+    elCharCount.textContent = `${MirrorCore.counts(raw).graphemes} chars`;
   }
 
   function shareURL(){
