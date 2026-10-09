@@ -1,0 +1,8 @@
+{
+  "name": "mirror-cipherlab",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
