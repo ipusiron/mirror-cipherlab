@@ -12,6 +12,7 @@
   const Core = window.MirrorCore;
   const Msg = window.MirrorMessages;
   const Examples = window.MirrorExamples;
+  const Compare = window.MirrorCompare;
 
   /** 入力がこの長さを超えたら、打鍵ごとではなく少し待ってから変換する。 */
   const DEBOUNCE_LENGTH = 5000;
@@ -44,6 +45,20 @@
   const elShareStatus = $("#shareStatus");
   const elShareBox = $("#shareBox");
   const elShareUrl = $("#shareUrl");
+  const elCompareEmpty = $("#compareEmpty");
+  const elCompareSample = $("#compareSample");
+  const elCmpRloLink = $("#cmpRloLink");
+
+  /** 比較のカード3枚の要素（データの逆・見た目の鏡像・表示だけの逆）。 */
+  const compareCards = {};
+  for (const [name, id] of [["data", "Data"], ["mirror", "Mirror"], ["rlo", "Rlo"]]) {
+    compareCards[name] = {
+      render: $(`#cmp${id}Render`),
+      facts: $(`#cmp${id}Facts`),
+      caption: $(`#cmp${id}CpCaption`),
+      cps: $(`#cmp${id}Cps`)
+    };
+  }
 
   const btnClear = $("#btnClear");
   const btnCopyIn = $("#btnCopyIn");
@@ -237,6 +252,68 @@
     elComboText.textContent = t(`combo.${key}.text`);
     elComboMirror.textContent = t(readable ? "combo.mirrorYes" : "combo.mirrorNo");
     elComboMirror.classList.toggle("is-yes", readable);
+    renderCompare();
+  }
+
+  // ---------- 3つの「逆」の比較 ----------
+
+  /** 比較に使う文字数の上限（長い文でも、違いは先頭だけで十分に見える）。 */
+  const COMPARE_LIMIT = 24;
+
+  /** コードポイントの一覧を <li> で並べる。文字は textContent で入れる。 */
+  function renderCodePoints(target, list) {
+    target.replaceChildren();
+    for (const item of list.items) {
+      const li = document.createElement("li");
+      li.className = `cp cp-${item.kind}`;
+      const glyph = document.createElement("span");
+      glyph.className = "cp-glyph";
+      glyph.textContent = item.label;
+      const code = document.createElement("span");
+      code.className = "cp-code";
+      code.textContent = item.hex;
+      li.append(glyph, code);
+      target.append(li);
+    }
+  }
+
+  /** 1枚のカード（事実の表・見え方・コードポイント）を描く。 */
+  function renderCompareCard(name, facts, copyKey) {
+    const box = compareCards[name];
+    box.render.textContent = facts.shown;
+    const rows = [
+      ["fact.order", t(facts.orderKept ? "fact.kept" : "fact.changed")],
+      ["fact.search", t(facts.containsOriginal ? "fact.found" : "fact.notFound")],
+      ["fact.added", t("fact.addedCount", { n: facts.addedCodePoints })],
+      ["fact.copy", t(copyKey)]
+    ];
+    box.facts.replaceChildren();
+    for (const [key, value] of rows) {
+      const dt = document.createElement("dt");
+      dt.textContent = t(key);
+      const dd = document.createElement("dd");
+      dd.textContent = value;
+      box.facts.append(dt, dd);
+    }
+    box.caption.textContent = t("compare.cpCaption", {
+      shown: facts.codePoints.items.length,
+      total: facts.codePoints.total
+    });
+    renderCodePoints(box.cps, facts.codePoints);
+  }
+
+  /** 入力の先頭を題材に、3つの「逆」を並べる。 */
+  function renderCompare() {
+    const full = elInput.value;
+    const sample = Array.from(full).slice(0, COMPARE_LIMIT).join("");
+    elCompareEmpty.hidden = sample.length > 0;
+    elCompareSample.hidden = Array.from(full).length <= COMPARE_LIMIT;
+    elCompareSample.textContent = t("compare.sample", { n: COMPARE_LIMIT });
+    const r = Compare.compare(sample);
+    renderCompareCard("data", r.data, "copy.data");
+    renderCompareCard("mirror", r.mirror, "copy.mirror");
+    renderCompareCard("rlo", r.rlo, "copy.rlo");
+    elCmpRloLink.href = Compare.day023Link(r.rlo.data);
   }
 
   let timer = 0;

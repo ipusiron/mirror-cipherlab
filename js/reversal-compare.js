@@ -4,7 +4,7 @@
  * 1. データの逆      Step 1 の全文の逆順。文字の並び（データ）が変わる
  * 2. 見た目の鏡像    Step 2 の CSS の変形。データは変わらず、見た目だけが変わる
  * 3. 表示だけの逆    制御文字 RLO（U+202E）。データは元の並びのまま、表示だけが逆になる
- *                    （ファイル名の偽装に悪用される。MITRE ATT&CK T1036.002）
+ *                    （見た目と中身が食い違うので、悪用の対象として知られる。MITRE ATT&CK T1036.002）
  *
  * js/mirror-core.js（MirrorCore）のあとに読み込む。
  * 見えない制御文字はソースに直接書かず、コードポイントから組み立てる。
@@ -118,6 +118,13 @@
     return { visual: visual, exact: exact };
   }
 
+  /** 双方向テキストの制御文字を取り除く（元の文字の並びを保っているかを見るため）。 */
+  function stripBidi(text) {
+    return Array.from(String(text || '')).filter(function (c) {
+      return BIDI.indexOf(c.codePointAt(0)) < 0;
+    }).join('');
+  }
+
   /** 3つの「逆」を並べる。それぞれの事実は計算で出す（書き決めない）。 */
   function compare(text) {
     var src = String(text || '');
@@ -128,6 +135,7 @@
         data: data,
         shown: shown,
         sameOrder: data === src,
+        orderKept: stripBidi(data) === src,
         containsOriginal: src.length > 0 && data.indexOf(src) >= 0,
         addedCodePoints: Array.from(data).length - Array.from(src).length,
         codePoints: codePointList(data)
@@ -138,28 +146,6 @@
       data: facts(reversed, reversed),
       mirror: facts(src, src),
       rlo: facts(override, overrideVisual(override).visual)
-    };
-  }
-
-  /** 末尾の拡張子（ドットのあとの英数字1〜5字）。なければ空文字。 */
-  function extensionOf(name) {
-    var m = String(name || '').match(/\.([A-Za-z0-9]{1,5})$/);
-    return m ? m[1].toLowerCase() : '';
-  }
-
-  /**
-   * RLO でファイル名を偽装する例を組み立てる。
-   * 例: base=invoice, shown=pdf, real=exe → 中身は「invoice[RLO]fdp.exe」、見え方は「invoiceexe.pdf」
-   */
-  function spoofExample(base, shownExt, realExt) {
-    var logical = String(base) + RLO + Core.reverseAll(String(shownExt)) + '.' + String(realExt);
-    var visual = overrideVisual(logical).visual;
-    return {
-      logical: logical,
-      visual: visual,
-      realExtension: extensionOf(logical),
-      shownExtension: extensionOf(visual),
-      codePoints: codePointList(logical, 64)
     };
   }
 
@@ -181,10 +167,9 @@
     codePointList: codePointList,
     withOverride: withOverride,
     hasBidiContent: hasBidiContent,
+    stripBidi: stripBidi,
     overrideVisual: overrideVisual,
     compare: compare,
-    extensionOf: extensionOf,
-    spoofExample: spoofExample,
     day023Link: day023Link
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

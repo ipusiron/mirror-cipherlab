@@ -792,3 +792,131 @@ html,body{
     font-size:24px;
   }
 }
+
+/* Three kinds of reversal */
+.compare-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:var(--spacing-md);
+}
+
+.compare-card{
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  padding:var(--spacing-md);
+  background:var(--controls-bg);
+  min-width:0;
+}
+
+.compare-card h3{
+  margin:0 0 var(--spacing-xs);
+  font-size:15px;
+}
+
+.compare-sub{
+  margin:0 0 var(--spacing-sm);
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.6;
+}
+
+.compare-render{
+  margin:0 0 var(--spacing-sm);
+  padding:var(--spacing-sm);
+  border:1px dashed var(--border);
+  border-radius:var(--radius-sm);
+  background:var(--input-bg);
+  min-height:2.4em;
+  font-size:16px;
+  overflow-wrap:anywhere;
+}
+
+/* The logical order is shown as written, so the marks below match the characters */
+.bidi-demo{
+  direction:ltr;
+  unicode-bidi:bidi-override;
+}
+
+.compare-facts{
+  display:grid;
+  grid-template-columns:auto minmax(0, 1fr);
+  gap:2px var(--spacing-sm);
+  margin:0 0 var(--spacing-sm);
+  font-size:13px;
+}
+
+.compare-facts dt{
+  color:var(--muted);
+}
+
+.compare-facts dd{
+  margin:0;
+  overflow-wrap:anywhere;
+}
+
+.cp-caption{
+  margin:0 0 var(--spacing-xs);
+  color:var(--muted);
+  font-size:12px;
+}
+
+.cp-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+
+.cp{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:1px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:2px 4px;
+  background:var(--panel);
+  min-width:34px;
+}
+
+.cp-glyph{
+  font-size:14px;
+  line-height:1.4;
+}
+
+.cp-code{
+  color:var(--muted);
+  font-size:10px;
+}
+
+.cp-bidi{
+  border-color:var(--accent);
+}
+
+.cp-bidi .cp-glyph{
+  color:var(--accent);
+  font-weight:700;
+}
+
+.cp-invisible .cp-glyph,
+.cp-control .cp-glyph,
+.cp-space .cp-glyph{
+  color:var(--muted);
+  font-size:11px;
+}
+
+.compare-link{
+  margin:var(--spacing-sm) 0;
+}
+
+.compare-link a{
+  color:var(--link);
+}
+
+@media (max-width: 768px){
+  .compare-grid{
+    grid-template-columns:minmax(0, 1fr);
+  }
+}

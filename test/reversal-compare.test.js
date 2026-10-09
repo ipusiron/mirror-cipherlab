@@ -60,6 +60,9 @@ test('3つの「逆」の事実を計算で出す', () => {
   assert.equal(r.rlo.sameOrder, false);
   assert.equal(r.rlo.containsOriginal, true, 'RLO の文字列は元の並びをそのまま含む');
   assert.equal(r.rlo.addedCodePoints, 2);
+  assert.deepEqual([r.data.orderKept, r.mirror.orderKept, r.rlo.orderKept], [false, true, true],
+    'RLO は制御文字を除けば元の並びのまま');
+  assert.equal(X.stripBidi(r.rlo.data), 'Hello');
   assert.equal(r.rlo.shown, 'olleH', '見え方はデータの逆と同じ');
   assert.deepEqual(r.rlo.codePoints.items.map((i) => i.label), ['RLO', 'H', 'e', 'l', 'l', 'o', 'PDF']);
 });
@@ -77,24 +80,8 @@ test('空の入力', () => {
   assert.equal(r.rlo.data, `${RLO}${PDF}`);
 });
 
-test('拡張子を取り出す', () => {
-  assert.equal(X.extensionOf('report.PDF'), 'pdf');
-  assert.equal(X.extensionOf(`invoice${RLO}fdp.exe`), 'exe');
-  assert.equal(X.extensionOf('README'), '');
-  assert.equal(X.extensionOf('archive.tar.gz'), 'gz');
-});
-
-test('ファイル名の偽装の例: 中身は .exe、見え方は .pdf', () => {
-  const s = X.spoofExample('invoice', 'pdf', 'exe');
-  assert.equal(s.logical, `invoice${RLO}fdp.exe`);
-  assert.equal(s.visual, 'invoiceexe.pdf');
-  assert.equal(s.realExtension, 'exe');
-  assert.equal(s.shownExtension, 'pdf');
-  assert.equal(s.codePoints.items[7].label, 'RLO');
-});
-
 test('WeirdString Inspector へのリンクは # のあとに中身を置き、受け手の読み方で元に戻る', () => {
-  const text = `invoice${RLO}fdp.exe`;
+  const text = `${RLO}Hello${PDF}`;
   const url = X.day023Link(text);
   assert.ok(url.startsWith('https://ipusiron.github.io/weirdstring-inspector/#text='));
   assert.ok(url.includes('%E2%80%AE'), 'RLO をパーセントエンコードしている');
