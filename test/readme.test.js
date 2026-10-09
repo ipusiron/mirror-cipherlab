@@ -83,8 +83,9 @@ test('Step 1 の表は、実装の出力と一致する', () => {
 
 test('組み合わせの表の「鏡に映すと」が、実装の判定と一致する', () => {
   const rows = tableRows(section(README, '### 組み合わせの説明'));
-  assert.equal(rows.length, 6);
-  const pairs = [['none', 'h'], ['none', 'v'], ['all', 'none'], ['all', 'h'], ['all', 'v'], ['eachWord', 'h']];
+  assert.equal(rows.length, 8);
+  const pairs = [['none', 'h'], ['none', 'v'], ['all', 'none'], ['all', 'h'], ['all', 'v'],
+    ['all', 'hv'], ['boustrophedon', 'h'], ['eachWord', 'h']];
   rows.forEach((cells, i) => {
     const [mode, mirror] = pairs[i];
     const back = !cells[3].startsWith('戻らない');

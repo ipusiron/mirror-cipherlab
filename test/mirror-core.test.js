@@ -16,8 +16,8 @@ const KEYCAP = `1${cp(0xFE0F, 0x20E3)}2`;
 
 test('方式の一覧と既定値', () => {
   assert.deepEqual(C.MODES, ['none', 'all', 'eachWord', 'wordOrder', 'eachLine', 'lineOrder',
-    'eachSentence', 'blocks', 'blocksThenOrder']);
-  assert.deepEqual(C.MIRRORS, ['none', 'h', 'v']);
+    'eachSentence', 'blocks', 'blocksThenOrder', 'boustrophedon']);
+  assert.deepEqual(C.MIRRORS, ['none', 'h', 'v', 'hv']);
   assert.deepEqual(C.FONTS, ['system-ui', 'serif', 'monospace']);
   assert.equal(C.MAX_TEXT_LENGTH, 50000);
   assert.equal(C.SHARE_WARN_LENGTH, 2000);

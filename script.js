@@ -14,6 +14,7 @@
   const Examples = window.MirrorExamples;
   const Compare = window.MirrorCompare;
   const Solver = window.MirrorSolver;
+  const Render = window.MirrorRender;
 
   /** 入力がこの長さを超えたら、打鍵ごとではなく少し待ってから変換する。 */
   const DEBOUNCE_LENGTH = 5000;
@@ -56,6 +57,8 @@
   const elSolveResults = $("#solveResults");
   const btnSolveFromOutput = $("#btnSolveFromOutput");
   const btnSolveClear = $("#btnSolveClear");
+  const btnDownloadPng = $("#btnDownloadPng");
+  const elPngStatus = $("#pngStatus");
 
   /** 比較のカード3枚の要素（データの逆・見た目の鏡像・表示だけの逆）。 */
   const compareCards = {};
@@ -134,6 +137,7 @@
     renderThemeButton();
     renderStatus();
     renderShareStatus();
+    renderPngStatus();
     renderSolve();
   }
 
@@ -232,10 +236,34 @@
   }
 
   /** 入力と設定から Step 1 を計算し、画面に出す。 */
+  /**
+   * Step 2 の枠に結果を描く。
+   * 牛耕式のときは行ごとに分け、向きが変わる行だけを鏡像にする（石碑と同じ書き方）。
+   * ほかの方式は、枠ごと鏡像にする。
+   */
+  function renderMirrored(text, mode, mirror) {
+    elStepMir.replaceChildren();
+    if (mode !== "boustrophedon") {
+      setMirrorClass(elStepMir, mirror);
+      elStepMir.textContent = text;
+      return;
+    }
+    setMirrorClass(elStepMir, "none");
+    const reversed = Core.reversedLines(text);
+    text.split("\n").forEach((line, i) => {
+      const span = document.createElement("span");
+      span.className = "ox-line";
+      if (mirror !== "none" && reversed.includes(i)) span.classList.add(`ox-${mirror}`);
+      // 空の行も高さを保つ
+      span.textContent = line === "" ? " " : line;
+      elStepMir.append(span);
+    });
+  }
+
   function update() {
     lastResult = Core.transform(elInput.value, readOptions());
     elStepRev.textContent = lastResult;
-    elStepMir.textContent = lastResult;
+    renderMirrored(lastResult, elReversal.value, elMirror.value);
     renderStatus();
   }
 
@@ -253,8 +281,8 @@
     elBlockControl.hidden = !Core.BLOCK_MODES.includes(mode);
     elReversalHint.textContent = t(`hint.${mode}`, { n: Core.clampBlockSize(elBlockSize.value) });
 
+    // 鏡像の掛け方は renderMirrored が決める（牛耕式は行ごとに変える）
     const mirror = elMirror.value;
-    setMirrorClass(elStepMir, mirror);
     const key = Core.describeCombination(mode, mirror);
     const readable = Core.readableInMirror(mode, mirror);
     elComboTitle.textContent = t(`combo.${key}.title`);
@@ -449,6 +477,61 @@
     update();
   }
 
+  // ---------- 画像で保存 ----------
+
+  /** 画像の状態の文（言語を切り替えたら描き直す）。 */
+  let pngMessage = null;
+
+  function renderPngStatus() {
+    elPngStatus.hidden = !pngMessage;
+    if (pngMessage) elPngStatus.textContent = t(pngMessage.key, pngMessage.vars);
+  }
+
+  /**
+   * 表示中の文を PNG にして保存する。
+   * Step 2 の鏡像は CSS の変形なので画像には入らない。canvas に描き直して同じ変形を掛ける。
+   */
+  function downloadPng() {
+    const canvas = document.createElement("canvas");
+    const light = currentTheme() === "light";
+    let info;
+    try {
+      info = Render.draw(canvas, {
+        text: lastResult,
+        mode: elReversal.value,
+        mirror: elMirror.value,
+        font: elFont.value,
+        background: light ? "#ffffff" : "#0b0e12",
+        color: light ? "#1a1f2e" : "#e6edf3"
+      });
+    } catch (e) {
+      pngMessage = { key: "png.failed" };
+      renderPngStatus();
+      showToast(t("png.failed"));
+      return;
+    }
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        // file:// では canvas の書き出しが拒まれることがある
+        pngMessage = { key: "png.failed" };
+        renderPngStatus();
+        showToast(t("png.failed"));
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = Render.fileName();
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      pngMessage = info.clipped
+        ? { key: "png.clipped", vars: { lines: Render.MAX_LINES, chars: Render.MAX_CHARS_PER_LINE } }
+        : { key: "png.saved", vars: { w: info.pixelWidth, h: info.pixelHeight } };
+      renderPngStatus();
+      showToast(t("png.savedToast"));
+    }, "image/png");
+  }
+
   // ---------- 共有URL ----------
 
   function currentState() {
@@ -551,6 +634,7 @@
     downloadText(name, lastResult);
   });
   btnShare.addEventListener("click", shareURL);
+  btnDownloadPng.addEventListener("click", downloadPng);
 
   elSolveInput.addEventListener("input", scheduleSolve);
   elSolveLang.addEventListener("change", solveNow);

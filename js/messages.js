@@ -141,6 +141,22 @@
       'compare.inspect': 'この文字列をWeirdString Inspectorで調べる',
       'compare.note': 'RLOは文字の並びを変えずに表示だけを逆にするため、画面に見える文字と、検索・保存で扱われる文字が食い違います。この食い違いは悪用の対象として知られており（MITRE ATT&CK T1036.002）、受け取った文字列を調べるときの着眼点になります。',
 
+      'mode.boustrophedon': '牛耕式（行ごとに向きを変える）',
+      'hint.boustrophedon': '偶数行（2行目・4行目…）だけを逆順にします。牛が畑を耕すように、行ごとに書く向きを変える書き方です。Step 2で「左右の鏡像」を選ぶと、向きが逆の行だけ字形も反転し、古代ギリシャの石碑と同じ見え方になります。',
+      'mirror.hv': '180度の回転（上下左右）',
+      'combo.rotated.title': '180度回した文字',
+      'combo.rotated.text': '上下と左右の両方を反転しています。紙をさかさまにしたときの見え方で、鏡に映しても元には戻りません。',
+      'combo.upsideDownOrder.title': '逆順を180度回転',
+      'combo.upsideDownOrder.text': '並びを逆にしたうえで、紙をさかさまにしています。並びの逆と回転が打ち消し合うので、行の中の文字は元の順に並んで見えます。',
+      'combo.oxTurning.title': '牛耕式（石碑の書き方）',
+      'combo.oxTurning.text': '行ごとに向きを変え、向きが逆の行だけ字形も反転しています。古代ギリシャの石碑やエトルリア文字に見られる書き方です。',
+      'combo.oxTurningPlain.title': '牛耕式（並びだけ）',
+      'combo.oxTurningPlain.text': '偶数行の並びだけを逆にしています。Step 2で「左右の鏡像」を選ぶと、向きが逆の行だけ字形も反転し、石碑と同じ見え方になります。',
+      'btn.downloadPng': '画像で保存',
+      'png.saved': '画像を保存しました（{w}×{h}ピクセル）。画面の鏡像はCSSの変形なので、画像には文字を描き直して同じ変形を掛けています。',
+      'png.savedToast': '画像を保存しました',
+      'png.clipped': '画像を保存しました。長い文は、{lines}行まで・1行{chars}字までで切っています。',
+      'png.failed': '画像を作れませんでした。index.htmlを直接開いている場合は、HTTPで配信してからお試しください。',
       'solve.heading': '🔎 どの並べ替えかを当てる',
       'solve.lead': '並べ替えられた文を入れると、9つの方式（ブロックは長さ2〜20）の逆をすべてかけ、戻した文の「文らしさ」が高い順に並べます。鍵がないので、方式を知らなくても総当たりで戻せます。',
       'solve.label': '並べ替えられた文',
@@ -315,6 +331,29 @@
       'compare.note': 'RLO reverses only the display without changing the order of the characters, so the characters you see differ from the ones '
         + 'used in searching and saving. This gap is known to be abused (MITRE ATT&CK T1036.002) and is worth checking in strings you receive.',
 
+      'mode.boustrophedon': 'Boustrophedon (change direction every line)',
+      'hint.boustrophedon': 'Reverses the even lines (the 2nd, 4th and so on). It is the way of writing that changes direction every line, like an '
+        + 'ox turning while plowing. Choosing "Horizontal mirror" in Step 2 also flips the glyphs of those lines, which is how it looks on ancient '
+        + 'Greek stone inscriptions.',
+      'mirror.hv': 'Rotate 180 degrees (both ways)',
+      'combo.rotated.title': 'Text rotated 180 degrees',
+      'combo.rotated.text': 'Flipped both vertically and horizontally. This is how it looks when the paper is turned upside down, and a mirror does '
+        + 'not turn it back.',
+      'combo.upsideDownOrder.title': 'Reversed, then rotated 180 degrees',
+      'combo.upsideDownOrder.text': 'The order is reversed and the page is turned upside down. The reversal and the rotation cancel each other out, '
+        + 'so the characters within a line appear in their original order.',
+      'combo.oxTurning.title': 'Boustrophedon (as on stone)',
+      'combo.oxTurning.text': 'The direction changes every line, and the lines that run the other way have mirrored glyphs. This is how ancient '
+        + 'Greek inscriptions and Etruscan were written.',
+      'combo.oxTurningPlain.title': 'Boustrophedon (order only)',
+      'combo.oxTurningPlain.text': 'Only the order of the even lines is reversed. Choosing "Horizontal mirror" in Step 2 also flips the glyphs of '
+        + 'those lines, matching the stone inscriptions.',
+      'btn.downloadPng': 'Save as image',
+      'png.saved': 'Image saved ({w} by {h} pixels). The mirror on screen is a CSS transform, so the image is drawn again from the characters with '
+        + 'the same transform applied.',
+      'png.savedToast': 'Image saved',
+      'png.clipped': 'Image saved. Long text is cut at {lines} lines and {chars} characters per line.',
+      'png.failed': 'Could not create the image. If you opened index.html directly, try serving it over HTTP.',
       'solve.heading': '🔎 Guess which reordering was used',
       'solve.lead': 'Paste reordered text and the tool applies the inverse of all nine modes (block sizes 2 to 20), then ranks the results by how '
         + 'much they read like a sentence. There is no key, so an exhaustive search restores the text even without knowing the mode.',
