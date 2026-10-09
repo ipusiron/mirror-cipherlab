@@ -14,6 +14,8 @@ Mirror CipherLab is an educational tool for experiencing reverse transposition (
 
 It offers nine ways of reordering text, including the whole text, each word, the word order, lines, sentences and blocks, and it works on visible characters (grapheme clusters) so that emoji and combining marks never break. For each combination it shows whether a mirror turns the result back into the original text and which real-world lettering it resembles.
 
+It also compares reversed data, a mirrored look and a display-only reversal (the RLO control character), and it can guess which mode was used on a piece of reordered text by exhaustive search.
+
 ---
 
 ## 🌐 Demo
@@ -41,6 +43,14 @@ Try it directly in your browser.
 >![The ambulance example in dark mode](assets/en/screenshot4.png)
 >
 >*Dark mode (ambulance example)*
+
+>![Reversed data, a mirrored look and a display-only reversal side by side](assets/en/screenshot5.png)
+>
+>*Three kinds of reversal, down to the code points*
+
+>![Reordered English text with the original restored as the first candidate](assets/en/screenshot6.png)
+>
+>*Guessing which reordering was used, most sentence-like first*
 
 The default Windows fonts have no flag emoji, so flags are shown as two regional indicator letters (such as JP and US).
 
@@ -89,6 +99,28 @@ For each combination of Step 1 and Step 2, the page explains how it looks, gives
 | Reverse the whole text | Horizontal mirror | Original order, flipped glyphs | Does not turn back | Like a row of hidari-uma ("left horse") charms |
 | Reverse the whole text | Vertical mirror | Reversed and flipped upside down | Does not turn back | — |
 | Any other mode | With or without a mirror | Only the text is reordered (and mirrored) | Does not turn back | — |
+
+### Three kinds of reversal
+
+The tool shows your text in three ways. They can look alike, but copying and searching handle different contents.
+
+| Kind | Order of the characters | Searching for the original | What copying gives |
+|---|---|---|---|
+| Reversed data (Step 1) | changed | does not find it | the reordered string |
+| Mirrored look (Step 2) | unchanged | finds it | the original string (the mirror is not copied) |
+| Display-only reversal (RLO) | unchanged (control characters added) | finds it | the original order, including the control characters |
+
+Each code point is listed one by one, with invisible characters shown by name (RLO, PDF and so on).
+The RLO control character (U+202E) reverses only the display, so the characters you see differ from the ones used in searching and saving.
+This gap is known to be abused (MITRE ATT&CK T1036.002) and is worth checking in strings you receive.
+A link passes the string to WeirdString Inspector (Day023).
+
+### Guessing which reordering was used
+
+Paste reordered text and the tool applies the inverse of all nine modes (block sizes 2 to 20) and lists up to five results, the most sentence-like first.
+There is no key, so an exhaustive search restores the text even without knowing the mode.
+How sentence-like a result is comes from how common its character sequences are (four-character sequences plus a common-word check for English, three-character sequences for Japanese).
+The statistics live in `js/lang-model.js`, built from public domain texts (see "Accuracy of the guessing").
 
 ### Other features
 
@@ -230,6 +262,38 @@ One-letter words such as "I" and words with capitals after the first letter such
 Sentence boundaries are detected by sentence-ending marks (. ! ? …).
 Proper nouns are not detected, so a proper noun at the start of a sentence becomes lowercase (this is why "Uncle" at the end of Example 1 becomes "uncle").
 
+### Accuracy of the guessing
+
+The guessing was measured on text that was not used to build the statistics.
+The first 70% of each work went into the statistics and the remaining 30% into the measurement: pieces of that text were reordered with each mode and then passed to the solver.
+A result counts as correct when the original text appears among the candidates (modes that give the same text cannot be told apart for that piece).
+
+| Length | English, 1st | English, top 3 | Japanese, 1st | Japanese, top 3 |
+|---|---|---|---|---|
+| 20 characters | 54.3% | 73.8% | 40.7% | 56.9% |
+| 40 characters | 62.4% | 89.0% | 47.6% | 68.3% |
+| 80 characters | 84.0% | 96.4% | 59.5% | 75.7% |
+| 160 characters | 86.4% | 94.8% | 70.0% | 72.9% |
+
+Per mode at 160 characters (how often the first candidate was correct):
+
+| Mode | English | Japanese |
+|---|---|---|
+| Reverse the whole text | 88.3% | 95.0% |
+| Reverse each word | 98.3% | 0% (cannot be restored) |
+| Reverse the word order | 63.3% | 10.0% |
+| Reverse each line | 88.3% | 95.0% |
+| Reverse each sentence | 78.3% | 95.0% |
+| Reverse each block | 100% | 100% |
+| Reverse each block, then the block order | 88.3% | 95.0% |
+
+Two cases are hard.
+
+- Japanese "reverse each word" does not come back when applied again, so it never appears among the candidates (see "Applying twice restores the text")
+- "Reverse the word order" is hard to tell apart because both the restored text and the word-reversed text read as words, especially in Japanese
+
+Short text is harder, and the page warns when the input is under 12 characters.
+
 ---
 
 ## 📜 Historical background
@@ -288,8 +352,8 @@ In short, its value as a cipher is **limited to education and play**.
 
 ### Security
 
-- Learn how display-only reversal differs: this tool changes the order of the characters themselves. In contrast, the control character RLO (U+202E) reverses only the display without changing the order and is abused to disguise file names (MITRE ATT&CK T1036.002). Putting a string with RLO into WeirdString Inspector makes the difference between data and display concrete.
-- Learn the limits of simple obfuscation: confirm that obfuscation such as reversing a string to avoid searches or eyes is undone instantly once the method is known.
+- Learn how display-only reversal differs: "Three kinds of reversal" puts reversed data, a mirrored look and a display-only reversal (RLO, U+202E) side by side. RLO changes only the display, so what you see differs from what searching and saving use (MITRE ATT&CK T1036.002). The string can be passed straight to WeirdString Inspector to check where the control characters are.
+- Learn the limits of simple obfuscation: paste reordered text into "Guessing which reordering was used" and watch it come back without knowing the mode. It shows, hands on, that keyless obfuscation does not keep text away from searching or reading.
 
 ### Combining with other tools
 
@@ -308,6 +372,7 @@ In short, its value as a cipher is **limited to education and play**.
 - The share URL puts the text and settings after `#` as base64url JSON. The part after `#` is not sent to the server, but the text remains for the recipient and in the browser history.
 - When loading a share URL, the format, the length (up to 50,000 characters) and the settings are checked against allowlists, and anything that does not match is not loaded and the reason is shown.
 - Only the theme and language choices are saved in the browser (localStorage). The tool works even when storage is unavailable.
+- The statistics used for guessing (`js/lang-model.js`) ship with the repository, and the guessing also runs entirely in the browser.
 
 ---
 
@@ -320,6 +385,9 @@ In short, its value as a cipher is **limited to education and play**.
 - "Fix capitals at sentence starts" does not detect proper nouns.
 - Right-to-left scripts (Arabic, Hebrew) and combining marks may look different depending on the browser and font.
 - Older browsers without `Intl.Segmenter` process text by code point (a notice is shown).
+- The ranking of the guesses is a statistical estimate; the first candidate is not always right (see "Accuracy of the guessing").
+- The statistics come from novels, so text full of technical terms, dialogue or proper nouns is harder to guess.
+- The RLO rendering shown in "Three kinds of reversal" assumes left-to-right scripts. With Arabic or Hebrew mixed in, it can differ from what the browser actually displays.
 
 ---
 
@@ -331,7 +399,7 @@ npm test
 
 - Runs on Node.js 22 or later. No dependencies (`node --test`).
 - GitHub Actions runs the tests on every push and pull request.
-- The tests check the known answers of every mode, reversal by visible character, restoring by applying twice, doubling being equal to reversing the whole text (block sizes 2 to 20), the share URL round trip and validation, color contrast ratios, and the tables and examples in both READMEs.
+- The tests check the known answers of every mode, reversal by visible character, restoring by applying twice, doubling being equal to reversing the whole text (block sizes 2 to 20), the share URL round trip and validation, the facts behind the three kinds of reversal, the ranking of the guesses, color contrast ratios, and the tables and examples in both READMEs.
 - The UI was checked with Playwright (the check scripts are not part of the repository).
 
 ---
@@ -347,6 +415,9 @@ npm test
 - MITRE ATT&CK, "[T1036.002 Masquerading: Right-to-Left Override](https://attack.mitre.org/techniques/T1036/002/)"
 - Unicode Standard Annex #29, "[Unicode Text Segmentation](https://www.unicode.org/reports/tr29/)"
 - Wikipedia, "[Boustrophedon](https://en.wikipedia.org/wiki/Boustrophedon)"
+- Texts used to build the statistics (public domain; the texts themselves are not included)
+  - Project Gutenberg (5 English works): [Pride and Prejudice](https://www.gutenberg.org/ebooks/1342), [Alice's Adventures in Wonderland](https://www.gutenberg.org/ebooks/11), [Frankenstein](https://www.gutenberg.org/ebooks/84), [The Adventures of Sherlock Holmes](https://www.gutenberg.org/ebooks/1661), [Moby Dick](https://www.gutenberg.org/ebooks/2701)
+  - [Aozora Bunko](https://www.aozora.gr.jp/) (12 Japanese works) by Natsume Soseki, Dazai Osamu, Akutagawa Ryunosuke, Miyazawa Kenji, Mori Ogai and Higuchi Ichiyo
 
 ---
 
@@ -362,11 +433,15 @@ mirror-cipherlab/
 │   │   ├── screenshot.png        # Ambulance example (English)
 │   │   ├── screenshot2.png       # Carroll's letter (English)
 │   │   ├── screenshot3.png       # Reversing emoji and combining marks (English)
-│   │   └── screenshot4.png       # Ambulance example (English, dark mode)
+│   │   ├── screenshot4.png       # Ambulance example (English, dark mode)
+│   │   ├── screenshot5.png       # Comparison of the three kinds of reversal (English)
+│   │   └── screenshot6.png       # Guessing which reordering was used (English)
 │   ├── screenshot.png            # Ambulance example (mirror writing)
 │   ├── screenshot2.png           # Reading Carroll's letter with word-order reversal
 │   ├── screenshot3.png           # Reversing emoji and combining marks as whole characters
-│   └── screenshot4.png           # Ambulance example (dark mode)
+│   ├── screenshot4.png           # Ambulance example (dark mode)
+│   ├── screenshot5.png           # Comparison of the three kinds of reversal
+│   └── screenshot6.png           # Guessing which reordering was used
 ├── js/                           # Scripts loaded by the page
 │   ├── examples.js               # Six examples (text and settings)
 │   ├── messages.js               # UI strings (Japanese and English)
