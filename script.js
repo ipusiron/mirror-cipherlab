@@ -1,46 +1,45 @@
-/* Mirror CipherLab
-   - Text reversal (full / word-wise / none)
-   - Glyph mirror (horizontal / vertical / none)
-   - Real-time preview, copy/clear/download, share URL
-   - Theme toggle (dark/light mode)
-   - All client-side
+/* Mirror CipherLab - 画面の処理
+   - Step 1 の並べ替えと共有URLの符号化: js/mirror-core.js（MirrorCore）
+   - 画面の文言: js/messages.js（MirrorMessages）
+   - 例文: js/examples.js（MirrorExamples）
+   - Step 2 の鏡像は CSS のクラスで見た目だけを変える
+   - すべてブラウザーの中で処理し、外部へは送らない
 */
 (() => {
-  const $ = (sel) => document.querySelector(sel);
+  "use strict";
 
-  // Theme management
+  const $ = (sel) => document.querySelector(sel);
+  const Core = window.MirrorCore;
+  const Msg = window.MirrorMessages;
+  const Examples = window.MirrorExamples;
+
+  /** 入力がこの長さを超えたら、打鍵ごとではなく少し待ってから変換する。 */
+  const DEBOUNCE_LENGTH = 5000;
+  const DEBOUNCE_MS = 150;
+
+  let lang = "ja";
+  const t = (key, vars) => Msg.t(lang, key, vars);
+
   const themeToggle = $("#themeToggle");
   const themeIcon = $("#themeIcon");
 
-  function getTheme(){
-    return localStorage.getItem("theme") || "dark";
-  }
-
-  function setTheme(theme){
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-    themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
-    themeToggle.setAttribute("aria-label", theme === "dark" ? "ライトモードに切り替え" : "ダークモードに切り替え");
-  }
-
-  function toggleTheme(){
-    const current = getTheme();
-    const next = current === "dark" ? "light" : "dark";
-    setTheme(next);
-  }
-
-  // Initialize theme
-  setTheme(getTheme());
-
-  themeToggle.addEventListener("click", toggleTheme);
-
   const elInput = $("#input");
+  const elExample = $("#example");
   const elReversal = $("#reversal");
+  const elBlockControl = $("#blockControl");
+  const elBlockSize = $("#blockSize");
+  const elFixCase = $("#fixCase");
   const elMirror = $("#mirror");
   const elFont = $("#font");
   const elStepRev = $("#stepReversed");
   const elStepMir = $("#stepMirrored");
-  const elCharCount = $("#charCount");
+  const elCounts = $("#inputCounts");
+  const elSplit = $("#inputSplit");
+  const elNoSegmenter = $("#noSegmenter");
+  const elReversalHint = $("#reversalHint");
+  const elComboTitle = $("#comboTitle");
+  const elComboText = $("#comboText");
+  const elComboMirror = $("#comboMirror");
 
   const btnClear = $("#btnClear");
   const btnCopyIn = $("#btnCopyIn");
@@ -50,23 +49,66 @@
 
   const toast = $("#toast");
 
-  // Utils
-  function showToast(msg){
+  /** Step 1 の結果。コピーと保存はこれを使う（鏡像は見た目だけなので含めない）。 */
+  let lastResult = "";
+
+  // ---------- 文言 ----------
+
+  /** data-i18n などの属性が指すキーで、画面の文言を入れ直す。 */
+  function applyI18n() {
+    document.documentElement.lang = lang;
+    document.title = t("app.title");
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+      el.setAttribute("placeholder", t(el.getAttribute("data-i18n-placeholder")));
+    });
+    document.querySelectorAll("[data-i18n-label]").forEach((el) => {
+      el.setAttribute("aria-label", t(el.getAttribute("data-i18n-label")));
+    });
+  }
+
+  // ---------- テーマ ----------
+
+  function getTheme() {
+    return localStorage.getItem("theme") || "dark";
+  }
+
+  function setTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+    renderThemeButton();
+  }
+
+  function renderThemeButton() {
+    const dark = document.documentElement.getAttribute("data-theme") !== "light";
+    themeIcon.textContent = dark ? "☀️" : "🌙";
+    themeToggle.setAttribute("aria-label", t(dark ? "theme.toLight" : "theme.toDark"));
+  }
+
+  function toggleTheme() {
+    setTheme(getTheme() === "dark" ? "light" : "dark");
+  }
+
+  // ---------- 通知 ----------
+
+  function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 1600);
   }
 
-  function copyText(text){
+  function copyText(text) {
     navigator.clipboard.writeText(text).then(() => {
-      showToast("Copied!");
+      showToast(t("toast.copied"));
     }).catch(() => {
-      showToast("Copy failed");
+      showToast(t("toast.copyFailed"));
     });
   }
 
-  function downloadText(filename, text){
-    const blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+  function downloadText(filename, text) {
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -75,134 +117,159 @@
     URL.revokeObjectURL(url);
   }
 
-  // Reversal (Step 1) is done by MirrorCore (js/mirror-core.js), grapheme by grapheme.
-  // The select still uses the old values; map them to MirrorCore modes.
-  const MODE_OF = { full: "all", word: "eachWord", none: "none" };
+  // ---------- 変換と描画 ----------
 
-  function applyReversal(input, mode){
-    return MirrorCore.transform(input, { mode: MODE_OF[mode] || "all" });
+  function readOptions() {
+    return {
+      mode: elReversal.value,
+      blockSize: Core.clampBlockSize(elBlockSize.value),
+      fixCase: elFixCase.checked
+    };
   }
 
-  // Glyph mirror (visual-only) via CSS classes
-  function setMirrorClass(target, mode){
+  /** Step 2 の鏡像（CSS のクラスで見た目だけを変える）。 */
+  function setMirrorClass(target, mode) {
     target.classList.remove("mirror-none", "mirror-h", "mirror-v");
-    if(mode === "h") target.classList.add("mirror-h");
-    else if(mode === "v") target.classList.add("mirror-v");
-    else target.classList.add("mirror-none");
+    target.classList.add(Core.MIRRORS.includes(mode) ? `mirror-${mode}` : "mirror-none");
   }
 
-  function setFontFamily(family){
-    const map = {
-      "system-ui": 'system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji",sans-serif',
-      "serif": 'Georgia, "Times New Roman", Times, serif',
-      "monospace": 'ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace'
-    };
-    document.documentElement.style.setProperty("--font-family-preview", map[family] || map["system-ui"]);
-    elStepRev.style.fontFamily = map[family] || map["system-ui"];
-    elStepMir.style.fontFamily = map[family] || map["system-ui"];
-  }
-
-  function update(){
-    const raw = elInput.value ?? "";
-    const modeRev = elReversal.value;
-    const modeMirror = elMirror.value;
-
-    const reversed = applyReversal(raw, modeRev);
-    elStepRev.textContent = reversed;
-
-    elStepMir.textContent = reversed;
-    setMirrorClass(elStepMir, modeMirror);
-
-    elCharCount.textContent = `${MirrorCore.counts(raw).graphemes} chars`;
-  }
-
-  function shareURL(){
-    const payload = {
-      t: elInput.value || "",
-      r: elReversal.value,
-      m: elMirror.value,
-      f: elFont.value
-    };
-    // Base64url encode (without padding)
-    const json = JSON.stringify(payload);
-    const b64 = btoa(unescape(encodeURIComponent(json)))
-      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    const url = `${location.origin}${location.pathname}#${b64}`;
-    navigator.clipboard.writeText(url).then(() => {
-      showToast("Share URL copied");
-    }).catch(()=>{
-      showToast("Failed to copy URL");
+  /** プレビューのフォント（クラスで切り替える）。 */
+  function setFont(family) {
+    const name = Core.FONTS.includes(family) ? family : "system-ui";
+    [elStepRev, elStepMir].forEach((el) => {
+      Core.FONTS.forEach((f) => el.classList.remove(`font-${f}`));
+      el.classList.add(`font-${name}`);
     });
   }
 
-  function loadFromHash(){
-    if(!location.hash) return;
-    try{
-      const b64u = location.hash.slice(1);
-      // Validate base64url format
-      if(!/^[A-Za-z0-9_-]+$/.test(b64u)){
-        console.warn("Invalid hash format");
-        return;
-      }
-      const b64 = b64u.replace(/-/g, "+").replace(/_/g, "/");
-      const json = decodeURIComponent(escape(atob(b64)));
-      const obj = JSON.parse(json);
+  /** 入力と設定から Step 1 を計算し、画面に出す。 */
+  function update() {
+    lastResult = Core.transform(elInput.value, readOptions());
+    elStepRev.textContent = lastResult;
+    elStepMir.textContent = lastResult;
+    renderStatus();
+  }
 
-      // Validate and sanitize inputs
-      if(typeof obj.t === "string" && obj.t.length <= 50000){
-        elInput.value = obj.t;
-      }
+  /**
+   * 状態から作る文（文字数・方式の説明・組み合わせ）を描く。
+   * 言語を切り替えたときは、計算し直さずにこれだけを呼ぶ。
+   */
+  function renderStatus() {
+    const counts = Core.counts(elInput.value);
+    elCounts.textContent = t("input.counts", counts);
+    elSplit.hidden = counts.graphemes === counts.codePoints;
+    elNoSegmenter.hidden = Core.hasSegmenter;
 
-      // Whitelist validation for select values
-      const validReversals = ["full", "word", "none"];
-      if(typeof obj.r === "string" && validReversals.includes(obj.r)){
-        elReversal.value = obj.r;
-      }
+    const mode = elReversal.value;
+    elBlockControl.hidden = !Core.BLOCK_MODES.includes(mode);
+    elReversalHint.textContent = t(`hint.${mode}`, { n: Core.clampBlockSize(elBlockSize.value) });
 
-      const validMirrors = ["none", "h", "v"];
-      if(typeof obj.m === "string" && validMirrors.includes(obj.m)){
-        elMirror.value = obj.m;
-      }
+    const mirror = elMirror.value;
+    setMirrorClass(elStepMir, mirror);
+    const key = Core.describeCombination(mode, mirror);
+    const readable = Core.readableInMirror(mode, mirror);
+    elComboTitle.textContent = t(`combo.${key}.title`);
+    elComboText.textContent = t(`combo.${key}.text`);
+    elComboMirror.textContent = t(readable ? "combo.mirrorYes" : "combo.mirrorNo");
+    elComboMirror.classList.toggle("is-yes", readable);
+  }
 
-      const validFonts = ["system-ui", "serif", "monospace"];
-      if(typeof obj.f === "string" && validFonts.includes(obj.f)){
-        elFont.value = obj.f;
-      }
-
-      setFontFamily(elFont.value);
+  let timer = 0;
+  function scheduleUpdate() {
+    clearTimeout(timer);
+    if (elInput.value.length > DEBOUNCE_LENGTH) {
+      timer = setTimeout(update, DEBOUNCE_MS);
+    } else {
       update();
-    }catch(e){
-      console.warn("Invalid hash payload:", e);
     }
   }
 
-  // Events
-  [elInput, elReversal, elMirror].forEach(el => {
-    el.addEventListener("input", update);
-    el.addEventListener("change", update);
-  });
+  // ---------- 例文 ----------
 
-  elFont.addEventListener("change", () => {
-    setFontFamily(elFont.value);
+  function applyExample(key) {
+    const ex = Examples.EXAMPLES.find((e) => e.key === key);
+    if (!ex) return;
+    elInput.value = Examples.textOf(ex, lang);
+    elReversal.value = ex.mode;
+    elMirror.value = ex.mirror || "none";
+    elFixCase.checked = !!ex.fixCase;
+    if (ex.blockSize) elBlockSize.value = String(ex.blockSize);
+    update();
+  }
+
+  // ---------- 共有URL ----------
+
+  function currentState() {
+    return {
+      text: elInput.value,
+      mode: elReversal.value,
+      mirror: elMirror.value,
+      font: elFont.value,
+      blockSize: Core.clampBlockSize(elBlockSize.value),
+      fixCase: elFixCase.checked
+    };
+  }
+
+  function shareURL() {
+    const share = Core.shareUrl(location.href, currentState());
+    navigator.clipboard.writeText(share.url).then(() => {
+      showToast(t("share.copied", { length: share.length.toLocaleString() }));
+    }).catch(() => {
+      showToast(t("share.failed"));
+    });
+  }
+
+  function loadFromHash() {
+    const result = Core.decodeShare(location.hash);
+    if (!result.ok) return;
+    const s = result.state;
+    elInput.value = s.text;
+    elReversal.value = s.mode;
+    elMirror.value = s.mirror;
+    elFont.value = s.font;
+    elBlockSize.value = String(s.blockSize);
+    elFixCase.checked = s.fixCase;
+    setFont(s.font);
+    update();
+  }
+
+  // ---------- イベント ----------
+
+  themeToggle.addEventListener("click", toggleTheme);
+
+  elInput.addEventListener("input", () => {
+    elExample.value = "";
+    scheduleUpdate();
+  });
+  [elReversal, elMirror, elFixCase].forEach((el) => el.addEventListener("change", update));
+  elBlockSize.addEventListener("input", update);
+  elBlockSize.addEventListener("change", () => {
+    elBlockSize.value = String(Core.clampBlockSize(elBlockSize.value));
     update();
   });
+  elFont.addEventListener("change", () => setFont(elFont.value));
+  elExample.addEventListener("change", () => applyExample(elExample.value));
 
   btnClear.addEventListener("click", () => {
     elInput.value = "";
+    elExample.value = "";
     update();
   });
 
-  btnCopyIn.addEventListener("click", () => copyText(elInput.value ?? ""));
-  btnCopyOut.addEventListener("click", () => copyText(elStepMir.textContent ?? ""));
+  btnCopyIn.addEventListener("click", () => copyText(elInput.value));
+  btnCopyOut.addEventListener("click", () => copyText(lastResult));
   btnDownload.addEventListener("click", () => {
-    const name = `mirror-cipherlab_${new Date().toISOString().replace(/[:.]/g,"-")}.txt`;
-    downloadText(name, elStepMir.textContent ?? "");
+    const name = `mirror-cipherlab_${new Date().toISOString().replace(/[:.]/g, "-")}.txt`;
+    downloadText(name, lastResult);
   });
-
   btnShare.addEventListener("click", shareURL);
 
-  // Init
-  setFontFamily(elFont.value);
+  // ---------- 初期化 ----------
+
+  applyI18n();
+  setTheme(getTheme());
+  setFont(elFont.value);
+  elReversal.value = "all";
   loadFromHash();
   update();
 })();

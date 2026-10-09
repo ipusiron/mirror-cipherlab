@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { read } from './load.js';
 
-const JS = ['script.js', 'js/mirror-core.js',
+const JS = ['script.js', 'js/mirror-core.js', 'js/messages.js', 'js/examples.js',
   ...fs.readdirSync(new URL('./', import.meta.url))
     .filter((f) => f.endsWith('.js')).map((f) => `test/${f}`)];
 

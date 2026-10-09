@@ -1,156 +1,211 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'self'; form-action 'none';" />
-  <meta name="referrer" content="no-referrer" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="文字の並びの逆転置と、字形の鏡像表示を組み合わせて学ぶ教育用ツール。Mirror cipher (text reversal and mirrored glyphs) visualizer. All in browser.">
   <title>Mirror CipherLab - ミラー系暗号化・難読化ツール</title>
-  <meta name="description" content="Mirror cipher (text reversal & mirrored rendering) visualizer. All in browser." />
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <header class="app-header">
-    <button id="themeToggle" class="theme-toggle" aria-label="テーマ切り替え">
-      <span class="theme-toggle-icon" id="themeIcon">☀️</span>
-    </button>
+    <div class="header-tools">
+      <button id="themeToggle" type="button" class="theme-toggle">
+        <span class="theme-toggle-icon" id="themeIcon" aria-hidden="true"></span>
+      </button>
+    </div>
     <h1>Mirror CipherLab</h1>
-    <p class="subtitle">ミラー（逆転値）暗号を「反転」、鏡文字を「鏡像レンダリング」で体験する</p>
+    <p class="subtitle" data-i18n="app.subtitle"></p>
   </header>
+
+  <noscript>
+    <p class="noscript">このツールはJavaScriptで動きます。ブラウザーのJavaScriptを有効にしてください。<br>
+      This tool runs on JavaScript. Please enable JavaScript in your browser.</p>
+  </noscript>
 
   <main class="container">
 
-    <section class="panel panel-input">
+    <section class="panel panel-input" aria-labelledby="inputHeading">
       <div class="panel-header">
-        <h2>📝 入力</h2>
+        <h2 id="inputHeading" data-i18n="input.heading"></h2>
+        <div class="example-picker">
+          <label for="example" class="example-label" data-i18n="example.label"></label>
+          <select id="example">
+            <option value="" data-i18n="example.placeholder"></option>
+            <option value="swift" data-i18n="example.swift"></option>
+            <option value="carroll" data-i18n="example.carroll"></option>
+            <option value="ambulance" data-i18n="example.ambulance"></option>
+            <option value="truck" data-i18n="example.truck"></option>
+            <option value="emoji" data-i18n="example.emoji"></option>
+            <option value="double" data-i18n="example.double"></option>
+          </select>
+        </div>
       </div>
 
-      <textarea id="input" placeholder="ここにテキストを入力してください（例）Mirror CipherLab へようこそ！" aria-label="入力テキスト"></textarea>
+      <label for="input" class="visually-hidden" data-i18n="input.label"></label>
+      <textarea id="input" maxlength="50000" spellcheck="false" aria-describedby="inputCounts inputSplit inputLimit"
+        data-i18n-placeholder="input.placeholder"></textarea>
+
+      <p id="inputCounts" class="counts"></p>
+      <p id="inputSplit" class="hint hint-warn" hidden data-i18n="input.split"></p>
+      <p id="inputLimit" class="hint" data-i18n="input.limit"></p>
+      <p id="noSegmenter" class="hint hint-warn" hidden data-i18n="input.noSegmenter"></p>
 
       <div class="btn-row">
-        <button id="btnClear" class="btn btn-ghost">Clear</button>
-        <button id="btnCopyIn" class="btn btn-ghost">Copy Input</button>
+        <button id="btnClear" type="button" class="btn btn-ghost" data-i18n="btn.clear"></button>
+        <button id="btnCopyIn" type="button" class="btn btn-ghost" data-i18n="btn.copyInput"></button>
       </div>
     </section>
 
-    <div class="flow-indicator">
+    <div class="flow-indicator" aria-hidden="true">
       <div class="flow-arrow">↓</div>
-      <div class="flow-label">リアルタイム変換</div>
+      <div class="flow-label" data-i18n="flow.realtime"></div>
     </div>
 
-    <section class="panel panel-controls">
+    <section class="panel panel-controls" aria-labelledby="controlsHeading">
       <div class="panel-header">
-        <h2>⚙️ 変換設定</h2>
+        <h2 id="controlsHeading" data-i18n="controls.heading"></h2>
       </div>
 
       <div class="controls-section">
-        <div class="controls controls-grid">
-          <label class="control" for="reversal">
-            <span class="control-label">
-              <span class="step-badge">Step 1</span>
-              Reversal（反転方式）
-            </span>
-            <select id="reversal">
-              <option value="full">Full Reverse（全文字を逆順）</option>
-              <option value="word">Word-wise Reverse（単語ごとに逆順）</option>
-              <option value="none">None（反転なし）</option>
+        <div class="controls-grid">
+          <div class="control control-wide">
+            <label class="control-label" for="reversal">
+              <span class="step-badge" data-i18n="step.one"></span>
+              <span data-i18n="control.reversal"></span>
+            </label>
+            <select id="reversal" aria-describedby="reversalHint">
+              <option value="none" data-i18n="mode.none"></option>
+              <option value="all" data-i18n="mode.all"></option>
+              <option value="eachWord" data-i18n="mode.eachWord"></option>
+              <option value="wordOrder" data-i18n="mode.wordOrder"></option>
+              <option value="eachLine" data-i18n="mode.eachLine"></option>
+              <option value="lineOrder" data-i18n="mode.lineOrder"></option>
+              <option value="eachSentence" data-i18n="mode.eachSentence"></option>
+              <option value="blocks" data-i18n="mode.blocks"></option>
+              <option value="blocksThenOrder" data-i18n="mode.blocksThenOrder"></option>
             </select>
-          </label>
+            <p id="reversalHint" class="hint"></p>
+          </div>
 
-          <label class="control" for="mirror">
-            <span class="control-label">
-              <span class="step-badge">Step 2</span>
-              Glyph Mirror（鏡像表示）
-            </span>
+          <div class="control" id="blockControl" hidden>
+            <label class="control-label" for="blockSize" data-i18n="control.blockSize"></label>
+            <input id="blockSize" type="number" min="2" max="20" step="1" value="5" inputmode="numeric">
+          </div>
+
+          <div class="control control-check control-wide">
+            <input id="fixCase" type="checkbox" aria-describedby="fixCaseHint">
+            <label for="fixCase" data-i18n="control.fixCase"></label>
+            <p id="fixCaseHint" class="hint" data-i18n="control.fixCaseHint"></p>
+          </div>
+
+          <div class="control">
+            <label class="control-label" for="mirror">
+              <span class="step-badge" data-i18n="step.two"></span>
+              <span data-i18n="control.mirror"></span>
+            </label>
             <select id="mirror">
-              <option value="none">None</option>
-              <option value="h">Horizontal（左右鏡像）</option>
-              <option value="v">Vertical（上下鏡像）</option>
+              <option value="none" data-i18n="mirror.none"></option>
+              <option value="h" data-i18n="mirror.h"></option>
+              <option value="v" data-i18n="mirror.v"></option>
             </select>
-          </label>
+          </div>
 
-          <label class="control" for="font">
-            <span class="control-label">Font（フォント）</span>
+          <div class="control">
+            <label class="control-label" for="font" data-i18n="control.font"></label>
             <select id="font">
-              <option value="system-ui">System UI</option>
-              <option value="serif">Serif</option>
-              <option value="monospace">Monospace</option>
+              <option value="system-ui" data-i18n="font.system-ui"></option>
+              <option value="serif" data-i18n="font.serif"></option>
+              <option value="monospace" data-i18n="font.monospace"></option>
             </select>
-          </label>
+          </div>
         </div>
+        <p class="hint involution" data-i18n="control.involution"></p>
       </div>
     </section>
 
-    <div class="flow-indicator">
+    <div class="flow-indicator" aria-hidden="true">
       <div class="flow-arrow">↓</div>
-      <div class="flow-label">処理結果</div>
+      <div class="flow-label" data-i18n="flow.result"></div>
     </div>
 
-    <section class="panel panel-output">
+    <section class="panel panel-output" aria-labelledby="outputHeading">
       <div class="panel-header">
-        <h2>✨ 出力（プレビュー）</h2>
-        <div class="info">
-          <span id="charCount" aria-live="polite">0 chars</span>
-        </div>
+        <h2 id="outputHeading" data-i18n="output.heading"></h2>
       </div>
 
       <div class="preview-wrap">
         <div class="preview-block">
-          <div class="preview-label">
-            <span class="step-number">Step 1</span>
-            <span class="step-desc">Reversal</span>
+          <div class="preview-label" id="step1Label">
+            <span class="step-number" data-i18n="step.one"></span>
+            <span class="step-desc" data-i18n="output.step1"></span>
           </div>
-          <pre id="stepReversed" class="preview" aria-label="反転処理後のテキスト"></pre>
+          <pre id="stepReversed" class="preview font-system-ui" tabindex="0" aria-labelledby="step1Label"></pre>
         </div>
 
         <div class="arrow" aria-hidden="true">→</div>
 
         <div class="preview-block">
-          <div class="preview-label">
-            <span class="step-number">Step 2</span>
-            <span class="step-desc">Glyph Mirror</span>
+          <div class="preview-label" id="step2Label">
+            <span class="step-number" data-i18n="step.two"></span>
+            <span class="step-desc" data-i18n="output.step2"></span>
           </div>
-          <pre id="stepMirrored" class="preview mirror-none" aria-label="鏡像処理後のテキスト"></pre>
+          <pre id="stepMirrored" class="preview font-system-ui mirror-none" tabindex="0" aria-labelledby="step2Label"></pre>
         </div>
       </div>
 
+      <div class="combo" id="combo" aria-live="polite">
+        <h3 class="combo-heading" data-i18n="combo.heading"></h3>
+        <p class="combo-title" id="comboTitle"></p>
+        <p class="combo-text" id="comboText"></p>
+        <p class="combo-mirror" id="comboMirror"></p>
+      </div>
+
       <div class="btn-row">
-        <button id="btnCopyOut" class="btn btn-accent">
-          <span class="btn-icon">📋</span>
-          Copy Output
+        <button id="btnCopyOut" type="button" class="btn btn-accent">
+          <span class="btn-icon" aria-hidden="true">📋</span>
+          <span data-i18n="btn.copyOutput"></span>
         </button>
-        <button id="btnDownload" class="btn btn-ghost">
-          <span class="btn-icon">💾</span>
-          Download .txt
+        <button id="btnDownload" type="button" class="btn btn-ghost">
+          <span class="btn-icon" aria-hidden="true">💾</span>
+          <span data-i18n="btn.download"></span>
         </button>
-        <button id="btnShare" class="btn btn-primary">
-          <span class="btn-icon">🔗</span>
-          Share URL
+        <button id="btnShare" type="button" class="btn btn-primary">
+          <span class="btn-icon" aria-hidden="true">🔗</span>
+          <span data-i18n="btn.share"></span>
         </button>
       </div>
+      <p class="hint" data-i18n="output.copyNote"></p>
+      <p id="shareStatus" class="share-status" role="status" hidden></p>
     </section>
   </main>
 
   <section class="notes">
     <details open>
-      <summary>💡 学習メモ（RTL/結合文字/絵文字など）</summary>
+      <summary data-i18n="notes.summary"></summary>
       <ul>
-        <li><strong>鏡像レンダリング</strong>は CSS の見た目変形です。バイト列や文字順自体は変わりません。</li>
-        <li><strong>反転（Full/Word-wise）</strong>は文字列の実順序を変更します。コピペ時は反転後のテキストになります。</li>
-        <li>RTL（右→左）言語や結合文字・絵文字はブラウザー差異でレンダリングが異なることがあります。</li>
-        <li>⚠️ 本ツールは教育用デモです。セキュリティ強度はありません。</li>
+        <li data-i18n="notes.data"></li>
+        <li data-i18n="notes.grapheme"></li>
+        <li data-i18n="notes.strength"></li>
+        <li data-i18n="notes.rlo"></li>
+        <li data-i18n="notes.rendering"></li>
       </ul>
     </details>
   </section>
 
   <footer>
     <div class="footer">
-      🔗 GitHubリポジトリはこちら（ <a href="https://github.com/ipusiron/mirror-cipherlab" target="_blank" rel="noopener noreferrer">ipusiron/mirror-cipherlab</a> ）
+      <span data-i18n="footer.label"></span><a href="https://github.com/ipusiron/mirror-cipherlab" target="_blank" rel="noopener noreferrer">ipusiron/mirror-cipherlab</a>
     </div>
   </footer>
 
   <div id="toast" role="status" aria-live="polite"></div>
 
+  <script src="./js/messages.js"></script>
+  <script src="./js/examples.js"></script>
   <script src="./js/mirror-core.js"></script>
   <script src="./script.js"></script>
 </body>
