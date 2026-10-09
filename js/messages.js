@@ -107,9 +107,9 @@
 
       'toast.copied': 'コピーしました',
       'toast.copyFailed': 'コピーできませんでした',
-      'share.copied': '共有URLをコピーしました（{length}字）',
+      'share.copied': '共有URLをコピーしました（{length}字）。',
       'share.long': '共有URLが{length}字あります。2,000字を超えると、一部のアプリやメールで途中で切れることがあります。',
-      'share.failed': '共有URLをコピーできませんでした',
+      'share.failed': '共有URLをコピーできませんでした。',
       'share.loaded': '共有URLの内容を読み込みました',
       'share.tooLong': '共有URLの文字列が上限の50,000字を超えているため、読み込みませんでした',
       'share.format': '共有URLの形式が正しくないため、読み込みませんでした',
@@ -123,7 +123,130 @@
       'notes.rendering': '右から左に書く文字や結合文字は、ブラウザーやフォントによって表示が変わることがあります。',
       'footer.label': '🔗 GitHubリポジトリー：'
     },
-    en: {}
+    en: {
+      'app.title': 'Mirror CipherLab - Mirror Cipher and Obfuscation Lab',
+      'app.subtitle': 'Experience reverse transposition (reversing the order of characters) combined with mirrored glyphs',
+
+      'lang.toggle': '日本語',
+      'lang.toggleLabel': 'Switch to Japanese',
+      'theme.toLight': 'Switch to light mode',
+      'theme.toDark': 'Switch to dark mode',
+
+      'input.heading': '📝 Input',
+      'input.label': 'Text to transform',
+      'input.placeholder': 'Type text here (e.g.) Welcome to Mirror CipherLab!',
+      'input.counts': 'Visible characters: {graphemes} / Code points: {codePoints} / UTF-16 length: {utf16}',
+      'input.split': 'Some visible characters are made of several code points. Reversing by code point would break them.',
+      'input.limit': 'Input is limited to 50,000 characters (UTF-16 length).',
+      'input.noSegmenter': 'This browser has no Intl.Segmenter, so text is processed by code point. Emoji and combining marks may break.',
+      'example.label': 'Load an example',
+      'example.placeholder': 'Choose an example…',
+      'example.swift': 'Swift\'s mock Latin (reverse each word)',
+      'example.carroll': 'Carroll\'s backwards letter (reverse word order)',
+      'example.ambulance': 'Ambulance front (read it in a mirror)',
+      'example.truck': 'Japanese truck lettering (right to left)',
+      'example.emoji': 'Emoji and combining marks (whole visible characters)',
+      'example.double': 'Double block reversal (same as reversing everything)',
+      'btn.clear': 'Clear',
+      'btn.copyInput': 'Copy input',
+
+      'flow.realtime': 'Live conversion',
+      'flow.result': 'Result',
+
+      'controls.heading': '⚙️ Settings',
+      'control.reversal': 'Reorder (changes the text)',
+      'control.mirror': 'Mirror the glyphs (display only)',
+      'control.font': 'Font',
+      'control.blockSize': 'Block size (2-20)',
+      'control.fixCase': 'Fix capitals at sentence starts (English etc.)',
+      'control.fixCaseHint': 'Lowercases words that were capitalized only because they started a sentence, then capitalizes the new sentence starts. '
+        + 'Proper nouns are not detected.',
+      'control.involution': 'Every mode restores the original when applied again with the same settings (except "each word" on Japanese).',
+      'step.one': 'Step 1',
+      'step.two': 'Step 2',
+
+      'mode.none': 'No reordering',
+      'mode.all': 'Reverse the whole text',
+      'mode.eachWord': 'Reverse each word',
+      'mode.wordOrder': 'Reverse the word order',
+      'mode.eachLine': 'Reverse each line',
+      'mode.lineOrder': 'Reverse the line order',
+      'mode.eachSentence': 'Reverse each sentence',
+      'mode.blocks': 'Reverse each block',
+      'mode.blocksThenOrder': 'Reverse each block, then the block order (double)',
+      'hint.none': 'Leaves the text as it is. Use it to try only the Step 2 mirror.',
+      'hint.all': 'Reads the whole text from the end. Emoji and combining marks move as whole visible characters.',
+      'hint.eachWord': 'Reverses the spelling of each word and keeps word order, punctuation and spaces in place. Japanese is split into words with '
+        + 'a dictionary, so applying it again may not restore the original.',
+      'hint.wordOrder': 'Reverses the order of words. Commas and quotation marks are reordered as units and attached to the preceding word, and '
+        + 'brackets are flipped (the way Carroll wrote his backwards letters).',
+      'hint.eachLine': 'Reverses each line and keeps the order of lines.',
+      'hint.lineOrder': 'Reverses the order of lines and keeps each line as it is.',
+      'hint.eachSentence': 'Keeps sentence-ending marks (. ! ? and their Japanese forms) and spaces in place and reverses the text of each sentence.',
+      'hint.blocks': 'Splits the text into blocks of {n} characters and reverses each block. Line breaks and spaces count as characters.',
+      'hint.blocksThenOrder': 'Reverses each block, then the order of the blocks. The result is exactly the same as reversing the whole text, so '
+        + 'doubling adds no strength.',
+
+      'mirror.none': 'No mirror',
+      'mirror.h': 'Horizontal mirror',
+      'mirror.v': 'Vertical mirror',
+      'font.system-ui': 'System UI',
+      'font.serif': 'Serif',
+      'font.monospace': 'Monospace',
+
+      'output.heading': '✨ Output',
+      'output.step1': 'Reordered text (copied and saved)',
+      'output.step2': 'Mirrored display (display only)',
+      'output.copyNote': 'Copy and save use the Step 1 reordered text. The Step 2 mirror only changes the display with CSS, so copied text is in the '
+        + 'normal orientation.',
+      'btn.copyOutput': 'Copy result',
+      'btn.download': 'Save as text',
+      'btn.share': 'Copy share URL',
+
+      'combo.heading': 'This combination',
+      'combo.mirrorYes': 'A mirror turns it back into the original text',
+      'combo.mirrorNo': 'A mirror does not turn it back into the original text',
+      'combo.plain.title': 'The original text',
+      'combo.plain.text': 'Neither reordered nor mirrored.',
+      'combo.mirrorWriting.title': 'Mirror writing (readable in a mirror)',
+      'combo.mirrorWriting.text': 'Both the order and the glyphs are flipped left to right, as in a mirror. This is how the word on the front of an '
+        + 'ambulance is written so that drivers ahead can read it in the rear-view mirror, and how Leonardo da Vinci wrote his notebooks.',
+      'combo.waterReflection.title': 'Reflection in water',
+      'combo.waterReflection.text': 'Only flipped upside down. A mirror placed below the text turns it back into the original.',
+      'combo.rightToLeft.title': 'Read from right to left',
+      'combo.rightToLeft.text': 'The glyphs are unchanged and only the order is reversed, like the company name on the right side of Japanese '
+        + 'trucks, written right to left so that it reads from front to back.',
+      'combo.glyphsOnly.title': 'Original order, flipped glyphs',
+      'combo.glyphsOnly.text': 'Showing reversed text with a horizontal mirror restores the order and flips each glyph. It looks like a row of the '
+        + 'hidari-uma ("left horse") charm from Tendo, Japan, where the single kanji for horse is written mirrored.',
+      'combo.reversedAndFlipped.title': 'Reversed and flipped upside down',
+      'combo.reversedAndFlipped.text': 'The order is reversed and the text is flipped upside down. It matches neither a mirror nor a reflection in '
+        + 'water, and it is not a 180-degree rotation (flipping both ways) either.',
+      'combo.dataOnly.title': 'Only the text is reordered',
+      'combo.dataOnly.text': 'Step 1 changes the order of the characters (the data). This result is what gets copied and saved.',
+      'combo.dataAndMirror.title': 'Reordered text shown mirrored',
+      'combo.dataAndMirror.text': 'Step 1 changes the text and the Step 2 mirror only changes its display. Copying takes the Step 1 result; the '
+        + 'mirror is not copied.',
+
+      'toast.copied': 'Copied',
+      'toast.copyFailed': 'Could not copy',
+      'share.copied': 'Share URL copied ({length} characters)',
+      'share.long': 'The share URL is {length} characters long. Some apps and mail clients cut URLs longer than 2,000 characters.',
+      'share.failed': 'Could not copy the share URL',
+      'share.loaded': 'Loaded the text and settings from the share URL',
+      'share.tooLong': 'The text in the share URL exceeds the 50,000-character limit, so it was not loaded',
+      'share.format': 'The share URL is malformed, so it was not loaded',
+      'share.urlLabel': 'Share URL (select and copy it here if copying failed)',
+
+      'notes.summary': '💡 Notes',
+      'notes.data': 'Step 1 changes the string itself (the data). The Step 2 mirror only changes its appearance with a CSS transform; the data stays the same.',
+      'notes.grapheme': 'Reordering works on visible characters (grapheme clusters). Reversing by code point breaks emoji, combining marks and flags.',
+      'notes.strength': 'There is no key, so anyone who knows the method can undo it. It offers no cryptographic strength; it is a form of obfuscation.',
+      'notes.rlo': 'The control character that only reverses the display (U+202E, RLO) is abused to disguise file names (MITRE ATT&CK T1036.002). '
+        + 'This tool changes the order of the characters themselves, which is a different thing.',
+      'notes.rendering': 'Right-to-left scripts and combining marks may look different depending on the browser and font.',
+      'footer.label': '🔗 GitHub repository: '
+    }
   };
 
   /** {name} の印に値を差し込む。 */

@@ -434,6 +434,26 @@ html,body{
   gap:var(--spacing-sm);
 }
 
+/* Language toggle button (shows the name of the other language) */
+.lang-toggle{
+  background:var(--panel);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  padding:0 var(--spacing-md);
+  min-width:44px;
+  min-height:44px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+
+.lang-toggle:hover{
+  border-color:var(--accent);
+}
+
 /* Theme toggle button */
 .theme-toggle{
   background:var(--panel);

@@ -31,7 +31,7 @@ Classic scripts (no modules, so `file://` works), loaded in this order by `index
 - `js/messages.js` - `MirrorMessages`: UI strings by key (`ja`, `en`), `t(lang, key, vars)` fills `{name}`
 - `js/examples.js` - `MirrorExamples`: six examples (text + settings)
 - `js/mirror-core.js` - `MirrorCore`: pure logic, no DOM (tests load it with `vm.runInThisContext`)
-- `script.js` - UI only (events, rendering, theme, share URL)
+- `script.js` - UI only (events, rendering, theme, language, share URL)
 
 **Step 1 modes** (`MirrorCore.MODES`): `none`, `all`, `eachWord`, `wordOrder`, `eachLine`, `lineOrder`, `eachSentence`, `blocks`, `blocksThenOrder`.
 
@@ -59,6 +59,8 @@ Classic scripts (no modules, so `file://` works), loaded in this order by `index
 
 **New mirror:** add to `MIRRORS`, the `<option>`, a `.mirror-*` class in `style.css`, `mirror.<name>` strings, and decide its combination keys.
 
+**Language:** `?lang=ja|en` -> saved choice (`localStorage` key `lang`) -> `navigator.language` (`ja*` -> ja, otherwise en). Switching language only re-renders (`setLang` calls `applyI18n`, `renderStatus`, `renderShareStatus`); it never recomputes the result. `README.en.md` mirrors every heading of `README.md` (checked by `test/i18n.test.js`); the YAML metadata stays only in `README.md`.
+
 **UI strings:** never hard-code text in HTML or JS; add keys to both `ja` and `en` in `js/messages.js` and reference them with `data-i18n`, `data-i18n-placeholder` or `data-i18n-label`.
 
 **Colors:** only as CSS variables in `:root` (dark, default) and `:root[data-theme="light"]`; `test/contrast.test.js` checks text pairs (4.5:1) and the focus ring (3:1).
@@ -68,5 +70,5 @@ Classic scripts (no modules, so `file://` works), loaded in this order by `index
 - CSP meta: `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'` (no inline scripts, styles or handlers)
 - Output is written with `textContent` only
 - Share URL input is validated by `MirrorCore.decodeShare` (format, length, whitelists)
-- `localStorage` access is wrapped (`withStorage`), so blocked storage does not stop the app
+- `localStorage` stores only `theme` and `lang`; access is wrapped (`withStorage`), so blocked storage does not stop the app
 - No external requests; everything runs in the browser

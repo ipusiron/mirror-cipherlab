@@ -22,6 +22,7 @@
 
   const themeToggle = $("#themeToggle");
   const themeIcon = $("#themeIcon");
+  const langToggle = $("#langToggle");
 
   const elInput = $("#input");
   const elExample = $("#example");
@@ -75,6 +76,7 @@
   // ---------- 保存（localStorage が使えない環境でも止めない） ----------
 
   const THEME_STORAGE_KEY = "theme";
+  const LANG_STORAGE_KEY = "lang";
 
   /** localStorage の読み書きを包む。プライベートモードやストレージの拒否で例外が出ても止めない。 */
   function withStorage(action, fallback) {
@@ -83,6 +85,32 @@
     } catch (e) {
       return fallback;
     }
+  }
+
+  // ---------- 言語 ----------
+
+  /** 言語は、URL の ?lang= → 保存した選択 → ブラウザーの言語（日本語以外は英語）の順で決める。 */
+  function initialLang() {
+    const m = location.search.match(/[?&]lang=([a-zA-Z-]+)/);
+    const asked = m ? m[1].toLowerCase() : "";
+    if (Msg.LANGUAGES.includes(asked)) return asked;
+    const saved = withStorage((s) => s.getItem(LANG_STORAGE_KEY), null);
+    if (Msg.LANGUAGES.includes(saved)) return saved;
+    const nav = (navigator.language || "").toLowerCase();
+    return nav.startsWith("ja") ? "ja" : "en";
+  }
+
+  /**
+   * 言語を切り替える。計算し直さずに、文言と状態から作る文だけを描き直す
+   * （入力欄・並べ替えの結果・共有URLの欄は言語によらないのでそのまま）。
+   */
+  function setLang(next, save) {
+    lang = next;
+    if (save) withStorage((s) => s.setItem(LANG_STORAGE_KEY, next), null);
+    applyI18n();
+    renderThemeButton();
+    renderStatus();
+    renderShareStatus();
   }
 
   // ---------- テーマ ----------
@@ -259,7 +287,7 @@
       return;
     }
     elShareStatus.hidden = false;
-    elShareStatus.textContent = shareMessage.parts.map((p) => t(p.key, p.vars)).join(" ");
+    elShareStatus.textContent = shareMessage.parts.map((p) => t(p.key, p.vars)).join(lang === "ja" ? "" : " ");
     elShareStatus.classList.toggle("is-warn", shareMessage.warn);
   }
 
@@ -307,6 +335,7 @@
   // ---------- イベント ----------
 
   themeToggle.addEventListener("click", toggleTheme);
+  langToggle.addEventListener("click", () => setLang(lang === "ja" ? "en" : "ja", true));
   window.addEventListener("hashchange", loadFromHash);
 
   elInput.addEventListener("input", () => {
@@ -338,6 +367,7 @@
 
   // ---------- 初期化 ----------
 
+  lang = initialLang();
   applyI18n();
   setTheme(initialTheme(), false);
   setFont(elFont.value);
