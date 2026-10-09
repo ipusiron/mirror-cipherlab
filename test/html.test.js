@@ -47,7 +47,7 @@ test('インラインのイベントハンドラー・style属性・インライ
 test('読み込むスクリプトがそろい、script.js が最後', () => {
   const order = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
   assert.deepEqual(order, ['./js/messages.js', './js/examples.js', './js/mirror-core.js',
-    './js/reversal-compare.js', './script.js']);
+    './js/reversal-compare.js', './js/lang-model.js', './js/solver.js', './script.js']);
 });
 
 test('noscriptがある', () => {

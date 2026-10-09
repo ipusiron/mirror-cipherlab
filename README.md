@@ -409,6 +409,8 @@ mirror-cipherlab/
 │   ├── examples.js               # 例文6つ（文と設定の組）
 │   ├── messages.js               # 画面の文言の辞書（日本語・英語）
 │   ├── mirror-core.js            # 並べ替えと共有URLの符号化（DOMに触れない）
+│   ├── solver.js                 # 解読（全方式の逆をかけ、文らしさで並べる）
+│   ├── lang-model.js             # 文らしさを測る統計（生成物。build_lang_model.pyで作る）
 │   └── reversal-compare.js       # 3つの「逆」の比較とRLOの例（DOMに触れない）
 ├── test/                         # 自動テスト（node --test）
 │   ├── contrast.test.js          # ライト・ダークの配色のコントラスト比
@@ -422,6 +424,7 @@ mirror-cipherlab/
 │   ├── readme.test.js            # READMEの例・表・YAML・ツリー
 │   ├── reversal-compare.test.js  # 3つの「逆」の比較・RLO・Day023へのリンク
 │   ├── script.test.js            # 画面の処理の書き方（静的な検査）
+│   ├── solver.test.js            # 解読（どの並べ替えかを当てる）
 │   └── share.test.js             # 共有URLの符号化と検証
 ├── .gitignore                    # Gitの除外設定
 ├── .nojekyll                     # GitHub PagesでJekyllを使わない
