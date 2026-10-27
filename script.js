@@ -143,13 +143,8 @@
 
   // ---------- テーマ ----------
 
-  /** テーマは、保存した選択 → OS の設定 → ダークの順で決める。 */
-  function initialTheme() {
-    const saved = withStorage((s) => s.getItem(THEME_STORAGE_KEY), null);
-    if (saved === "dark" || saved === "light") return saved;
-    const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
-    return prefersLight ? "light" : "dark";
-  }
+  // 初回のテーマ（保存した選択 → OS の設定 → ダーク）は、<head> の js/theme-init.js が
+  // 最初の描画の前に data-theme へ付ける。ここではそれを読んでボタンを合わせ、切り替えを受け持つ。
 
   function currentTheme() {
     return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
@@ -651,7 +646,7 @@
 
   lang = initialLang();
   applyI18n();
-  setTheme(initialTheme(), false);
+  renderThemeButton();
   setFont(elFont.value);
   elReversal.value = "all";
   loadFromHash();
