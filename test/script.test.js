@@ -14,8 +14,8 @@ test('localStorage を例外ごと包み、使えない環境でも止まらな�
   assert.deepEqual(direct, []);
 });
 
-test('テーマは保存した選択、OS の設定の順で決める', () => {
-  assert.ok(script.includes('prefers-color-scheme: light'), 'OS の設定を見ていない');
+test('テーマは保存した選択、OS の設定の順で決める（最初の描画の前に js/theme-init.js で）', () => {
+  assert.ok(read('js/theme-init.js').includes('prefers-color-scheme: light'), 'OS の設定を見ていない');
 });
 
 test('トーストのタイマーを止めてから数え直す', () => {

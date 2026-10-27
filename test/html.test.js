@@ -46,7 +46,7 @@ test('インラインのイベントハンドラー・style属性・インライ
 
 test('読み込むスクリプトがそろい、script.js が最後', () => {
   const order = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
-  assert.deepEqual(order, ['./js/messages.js', './js/examples.js', './js/mirror-core.js',
+  assert.deepEqual(order, ['./js/theme-init.js', './js/messages.js', './js/examples.js', './js/mirror-core.js',
     './js/reversal-compare.js', './js/render-image.js', './js/lang-model.js', './js/solver.js',
     './script.js']);
 });

@@ -35,7 +35,8 @@ Classic scripts (no modules, so `file://` works), loaded in this order by `index
 - `js/lang-model.js` - `MirrorLangModel`: **generated file**. Character n-gram log probabilities (English 4-gram + 2,000 common words, Japanese 3-gram with the 400 most frequent kanji kept). Rebuild with `build_lang_model.py` on the work side; never edit by hand
 - `js/solver.js` - `MirrorSolver`: applies the inverse of every mode (block sizes 2-20) and ranks the results by how sentence-like they are
 - `js/render-image.js` - `MirrorRender`: redraws the shown text onto a canvas and applies the Step 2 transform, so the mirror ends up in the saved PNG
-- `script.js` - UI only (events, rendering, theme, language, share URL)
+- `js/theme-init.js` - loaded synchronously in `<head>` right after the stylesheet; sets `data-theme` on `<html>` before the first paint (saved `theme` → OS setting → dark)
+- `script.js` - UI only (events, rendering, theme button and toggle, language, share URL)
 
 **Step 1 modes** (`MirrorCore.MODES`): `none`, `all`, `eachWord`, `wordOrder`, `eachLine`, `lineOrder`, `eachSentence`, `blocks`, `blocksThenOrder`, `boustrophedon`.
 
